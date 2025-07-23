@@ -45,32 +45,32 @@ default_config_filename = "expConfig.yaml"
 default_config_path = os.path.join(default_config_dir, default_config_filename)
 
 # Get config file from CLI argument (ignoring flags)
-user_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+# user_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
 
-if user_args:
-    user_config = user_args[0]
+# if user_args:
+#     user_config = user_args[0]
     
-    if os.path.isabs(user_config):
-        config_path = user_config
-    elif os.path.exists(user_config):
-        config_path = user_config  # relative path provided and valid
-    else:
-        config_path = os.path.join(default_config_dir, user_config)
-else:
-    config_path = default_config_path
+#     if os.path.isabs(user_config):
+#         config_path = user_config
+#     elif os.path.exists(user_config):
+#         config_path = user_config  # relative path provided and valid
+#     else:
+#         config_path = os.path.join(default_config_dir, user_config)
+# else:
+#     config_path = default_config_path
 
-# Expand and absolutize
-config_path = os.path.abspath(os.path.expanduser(config_path))
+# # Expand and absolutize
+# config_path = os.path.abspath(os.path.expanduser(config_path))
 
 # Check existence
-if not os.path.exists(config_path):
-    raise FileNotFoundError(f"Configuration file not found: {config_path}")
+if not os.path.exists(default_config_path):
+    raise FileNotFoundError(f"Configuration file not found: {default_config_path}")
 
-print(f"Using config file: {config_path}")
+print(f"Using config file: {default_config_path}")
 
 # Load config
-expConfig = utils.load_config(config_path)
-print(f"✅ Using config: {config_path}")
+expConfig = utils.load_config(default_config_path)
+print(f"✅ Using config: {default_config_path}")
 
 # get output path
 base_dir = expConfig["paths"]["base_output_dir"]
