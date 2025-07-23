@@ -81,7 +81,7 @@ class Experiment:
             targetIntensity = stairs.currentStaircase.intensity
             thisLabel = condition['label'] 
 
-            stimulus = self.myWin.stimuli[thisLabel] 
+            stimulus = self.myWin.stimuli[thisLabel]
             for entry in stimulus['components']:
                 if entry.get('type') == 'target':
                     entry['line_obj'].contrast = targetIntensity
@@ -160,20 +160,23 @@ class Experiment:
         for trial, condition in stairs:
             lines = []
             if thisTrial in breaks:
-                self.doBreak(b = np.where(breaks == thisTrial)[0][0])
+                self.doBreak(b=np.where(breaks == thisTrial)[0][0])
 
             if self.eyeTracker.doTracking:
-                self.eyeTracker.tracker.startRecording(1,1,1,1)
+                self.eyeTracker.tracker.startRecording(1, 1, 1, 1)
+
             targetIntensity = stairs.currentStaircase.intensity
             flankerIntensity = stairs.currentStaircase.condition['FC']
-            thisLabel = condition['label']
-            stimulus = self.myWin.stimuli[thisLabel] 
+
+            stim_key = condition['stim_key']   # Use stim_key, not label
+            stimulus = self.myWin.stimuli[stim_key] 
+
             for entry in stimulus['components']:
                 if entry.get('type') == 'target':
                     entry['line_obj'].contrast = targetIntensity
                 else:
                     entry['line_obj'].contrast = flankerIntensity
-                lines.append(entry['line_obj']) 
+                lines.append(entry['line_obj'])
             # Random _null chance
             if np.random.random() <= self.nullOdds:
                 targetIntensity = 0

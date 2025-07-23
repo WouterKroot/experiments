@@ -13,20 +13,20 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-test = None
-tracker = True
+is_test = True
+tracker = False
 #%% Test or experiment
-while test not in ["test", "experiment"]:
-    try:
-        test = input("Run as 'test' or 'experiment'? ").strip().lower()
+# while test not in ["test", "experiment"]:
+#     try:
+#         test = input("Run as 'test' or 'experiment'? ").strip().lower()
         
-        if test not in ["test", "experiment"]:
-            print("Invalid input. Please type 'test' or 'experiment'.")
-    except (EOFError, KeyboardInterrupt):
-        print("User cancelled. Exiting.")
-        sys.exit()
+#         if test not in ["test", "experiment"]:
+#             print("Invalid input. Please type 'test' or 'experiment'.")
+#     except (EOFError, KeyboardInterrupt):
+#         print("User cancelled. Exiting.")
+#         sys.exit()
 
-is_test = 1 if test == "test" else 0
+# is_test = 1 if test == "test" else 0
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -37,7 +37,6 @@ if tracker == 1:
 else:
     from src.eyelink_dummy import DummyEyeTracker
     eye_tracker = DummyEyeTracker()
-    
 
 #%% Load configuration
 default_config_dir = "./config"
@@ -142,25 +141,30 @@ if baseline_threshold < 0 or baseline_threshold > 0.1:
         
 # get conditions:
 experimentConditions = []
+stim_keys = list(myWin.stimuli.keys())
 
-for cond in expConfig['exp_blocks']['main']["flanker_conditions"]:
-    label = cond["label"]
-    factor = cond["FC_factor"]
+for stim_key in stim_keys:
+    for cond in expConfig['exp_blocks']['main']['flanker_conditions']:
+        label = cond['label']
+        factor = cond['FC_factor']
 
-    condition = {
-        "label": label,
-        "startVal": expConfig['exp_blocks']['main']["start_val"],
-        "maxVal": expConfig['fixed_params']["max_val"],
-        "minVal": expConfig['fixed_params']["min_val"],
-        "stepSizes": expConfig['fixed_params']["step_size"],
-        "stepType": expConfig['fixed_params']["step_type"],
-        "nReversals": expConfig['fixed_params']["reversals"],
-        "nUp":  expConfig['fixed_params']["n_up"],
-        "nDown": expConfig['fixed_params']["n_down"],
-        "FC": baseline_threshold * factor
-    }
+        condition = {
+            "label": f"{stim_key}_{label}",           # combine stim and contrast lab
+            "stim_key": stim_key,                      # store stimulus type for 
+            "startVal": expConfig['exp_blocks']['main']["start_val"],
+            "maxVal": expConfig['fixed_params']["max_val"],
+            "minVal": expConfig['fixed_params']["min_val"],
+            "stepSizes": expConfig['fixed_params']["step_size"],
+            "stepType": expConfig['fixed_params']["step_type"],
+            "nReversals": expConfig['fixed_params']["reversals"],
+            "nUp":  expConfig['fixed_params']["n_up"],
+            "nDown": expConfig['fixed_params']["n_down"],
+            "FC": baseline_threshold * factor
+        }
 
-    experimentConditions.append(condition)
+        experimentConditions.append(condition)
+
+
 #TODO: find an efficient way to access both drawable stimulus objects and type information (flanker or target) then adjust the trial intensity of flanker to be condition FC and target contrast to be stair intensity
 main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, experimentConditions)
 main_output = main.openDataFile()
