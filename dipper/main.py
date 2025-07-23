@@ -1,5 +1,4 @@
 # Based on yaml configurations create conditions and stimulus objects per condition, load all stimuli from yaml and associate condition with name, draw stimuli with visual.Line inside a window object, and run the experiment with baseline contrast in the main.py file.
-
 #%%
 import os
 import sys
@@ -13,7 +12,7 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = True
+is_test = False
 tracker = True
 #%% Test or experiment
 # while test not in ["test", "experiment"]:
@@ -27,11 +26,10 @@ tracker = True
 #         sys.exit()
 
 # is_test = 1 if test == "test" else 0
-
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
 # Eyetracking
-if tracker == 1:
+if tracker == True:
     eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=True)
     eye_tracker.startTracker()
 else:
@@ -45,7 +43,6 @@ default_config_path = os.path.join(default_config_dir, default_config_filename)
 
 # Get config file from CLI argument (ignoring flags)
 # user_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
-
 # if user_args:
 #     user_config = user_args[0]
     
@@ -57,14 +54,11 @@ default_config_path = os.path.join(default_config_dir, default_config_filename)
 #         config_path = os.path.join(default_config_dir, user_config)
 # else:
 #     config_path = default_config_path
-
 # # Expand and absolutize
 # config_path = os.path.abspath(os.path.expanduser(config_path))
 
-# Check existence
 if not os.path.exists(default_config_path):
     raise FileNotFoundError(f"Configuration file not found: {default_config_path}")
-
 print(f"Using config file: {default_config_path}")
 
 # Load config
@@ -82,10 +76,9 @@ else:
     baseline_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"], expConfig["paths"]["baseline_name"],f"{sub_id}_baseline")
     main_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"], expConfig["paths"]["main_name"], f"{sub_id}_main")
 
-#%% Setup window and stimulus set, TODO: change the monitor to experiment monito
 window = visual.Window(fullscr=True,
                        monitor="Flanders", 
-                       units="deg",
+                       units="pix",
                        colorSpace='rgb',
                        color = [0,0,0],
                        bpc=(10,10,10),
@@ -93,13 +86,11 @@ window = visual.Window(fullscr=True,
                        )
 #%%
 myWin = Window(window, expConfig)
-#%% Load in the stimulus set per condition
-#TODO: how to load stimuli from config file
-#{condition, object, type, pos, angle, length}
 myWin.stimuli = utils.load_stimuli(myWin) # A new drawable object is created and 
 
 #%% start with introduction
 myWin.intro()
+
 #%% Load in baseline settings from dict and run:
 if is_test == True:
     nTrials = expConfig["exp_blocks"]["baseline"]["test_trials"]
@@ -107,17 +98,13 @@ else:
     nTrials =  expConfig["exp_blocks"]["baseline"]["n_trials"]
 
 nBlocks = expConfig["exp_blocks"]["baseline"]["n_blocks"]
-nullOdds = 0.2
+nullOdds = 0.3
 
 baselineCondition = [
     {'label':'target','startVal':0.1,'maxVal':0.1,'minVal':0.0,
         'stepSizes':0.1,'stepType':'log','nReversals':1,
         'nUp':1,'nDown':1}]
-
-# baseline = Experiment(myWin, sub_id, nTrials, eye_tracker, expConfig, baseline_path, baselineCondition)
-
-# file_path = baseline.openDataFile()
-
+        
 redo = True
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
@@ -137,7 +124,7 @@ else:
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 if baseline_threshold < 0 or baseline_threshold > 0.1:
-        baseline_threshold = 0.0175
+        baseline_threshold = 0.02 #0.01
         
 # get conditions:
 experimentConditions = []
@@ -149,9 +136,9 @@ for stim_key in stim_keys:
         factor = cond['FC_factor']
 
         condition = {
-            "label": f"{stim_key}_{label}",           # combine stim and contrast lab
-            "stim_key": stim_key,                      # store stimulus type for 
-            "startVal": baseline_threshold,
+            "label": f"{stim_key}_{label}",          
+            "stim_key": stim_key,                      
+            "startVal": baseline_threshold * 1.5,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],
@@ -164,12 +151,8 @@ for stim_key in stim_keys:
 
         experimentConditions.append(condition)
 
-
-#TODO: find an efficient way to access both drawable stimulus objects and type information (flanker or target) then adjust the trial intensity of flanker to be condition FC and target contrast to be stair intensity
-main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, experimentConditions)
+# Run the main experiment
+main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
 main_output = main.openDataFile()
 main.run_main(main_output)
 main.end()
-
-
-# %%

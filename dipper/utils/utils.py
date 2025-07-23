@@ -20,7 +20,7 @@ def load_config(file_path):
         config_dict = yaml.load(f, Loader=yaml.FullLoader)
     return config_dict
 
-def create_line(win, pos=(0, 0), angle=90, length=100):
+def create_line(win, pos=(0, 0), angle=90, length=40):
     end1 = (
         pos[0] - math.cos(math.radians(angle)) * length / 2,
         pos[1] - math.sin(math.radians(angle)) * length / 2
@@ -29,7 +29,7 @@ def create_line(win, pos=(0, 0), angle=90, length=100):
         pos[0] + math.cos(math.radians(angle)) * length / 2,
         pos[1] + math.sin(math.radians(angle)) * length / 2
     )
-    return visual.Line(win, start=end1, end=end2, lineColor='black', lineWidth=4.2)
+    return visual.Line(win, start=end1, end=end2, lineColor='black', lineWidth=3.5)
 
 def load_stimuli(myWin):
     win = myWin.win

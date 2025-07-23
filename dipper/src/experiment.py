@@ -27,7 +27,7 @@ class Experiment:
                                              conditions=self.myConds, originPath=self.path)
         
     def end(self):
-        m_end = visual.TextStim(self.myWin.mywin, color=[1, 1, 1], wrapWidth=20,
+        m_end = visual.TextStim(self.myWin.mywin, color=[1, 1, 1], height = 32, wrapWidth=600,
                                   text = "Thanks for Participating!\nIt's finally over!\n:)""")
         self.myWin.drawOrder(m_end)
         self.eyeTracker.closeTracker()
@@ -125,12 +125,12 @@ class Experiment:
         self.dataFile.close()
 
     def doBreak(self,b):
-        m_break = visual.TextStim(self.mywin.mywin, color='black', wrapWidth=20,
+        m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
                                   text=f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.")
-        m_continue = visual.TextStim(self.mywin.mywin, color='black', wrapWidth=20,
+        m_continue = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
                                   text=f"You have finished block {b+1}.\nYou can continue when ready.\nPress [RIGHT] to continue.\n")
         self.myWin.drawOrder(m_break)
-        core.wait(self.t_break)
+        core.wait(self.myWin.t_break)
         self.myWin.drawOrder(m_continue)
         event.waitKeys(keyList=['right','num_6'])
         self.myWin.countdown()
@@ -228,7 +228,9 @@ class Experiment:
             thisTrial += 1
             if self.eyeTracker.doTracking:
                 self.eyeTracker.tracker.stopRecording()
-    
+            
+            print(thisTrial)
+            
             os.makedirs(self.path, exist_ok=True)
             psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
             stairs.saveAsPickle(psydat_path)
@@ -279,9 +281,9 @@ class Experiment:
         return thresh
 
     def reDoBase(self,thresh):
-        m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], wrapWidth=20,
+        m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
-        m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], wrapWidth=20,
+        m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\\Go again [y / n]?")
         if thresh > 0.1 or thresh <= 0:
             self.myWin.drawOrder(m_redo)

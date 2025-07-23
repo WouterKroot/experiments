@@ -12,11 +12,13 @@ class EyeTracker:
         self.ip = ip
         self.doTracking = doTracking
         self.eyeHostFile = str(self.id)+'.edf'
-        self.eyeLocalFile = "EyeLink/"+self.eyeHostFile
+        self.eyeLocalFile = "./Output/EyeLink/"+self.eyeHostFile
+        os.makedirs(os.path.dirname(self.eyeLocalFile), exist_ok=True)
 
     def startTracker(self):
         if not self.doTracking:
             return
+            
         self.tracker = pylink.EyeLink(self.ip)
         self.tracker.openDataFile(self.eyeHostFile)
         self.tracker.sendCommand("screen_pixel_coords = 0 0 1919 1079")
