@@ -1,0 +1,207 @@
+paths:
+  base_output_dir: "/Users/wouter/Documents/phd/projects/psychophysics/psychopy/experiments/dipper/Output/"
+  exp_output_dir: "Exp"
+  test_output_dir: "Test"
+  baseline_name: "Baseline"
+  main_name: "Main"
+
+fixed_params:
+  t_fixation: 0.3
+  t_stim: 0.2
+  t_response: 1.3
+  n_up: 1
+  n_down: 1
+  min_val: 0.0
+  max_val: 0.1
+  step_size: 0.1
+  step_type: "log"
+  reversals: 1
+
+exp_blocks:
+  baseline:
+    test_trials: 5
+    n_trials: 10
+    n_blocks: 1
+    start_val: 0.1
+  
+  main:
+    test_trials: 10
+    n_trials: 10
+    n_blocks: 5
+    nullOdds: 0.1
+    start_val: baseline_threshold
+    flanker_conditions:
+      - label: "100"
+        FC_factor: 1
+      - label: "200"
+        FC_factor: 2
+      - label: "400"
+        FC_factor: 4
+      - label: "800"
+        FC_factor: 8
+      - label: "1200"
+        FC_factor: 12
+      - label: "1400"
+        FC_factor: 14
+
+stimuli: 
+  target:
+    - object: line
+      type: target
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 0.5 
+
+  single_flanker:
+    - object: line
+      type: flanker
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: target
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+
+  double_flanker:
+    - object: line
+      type: flanker
+      pos: [-20.0, 120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [20.0, 120.0]
+      angle: 90
+      length: 80
+
+    - object: line
+      type: target
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+
+  triple_flanker:
+    - object: line
+      type: flanker
+      pos: [-20.0, 120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [20.0, 120.0]
+      angle: 90
+      length: 80
+
+    - object: line
+      type: flanker
+      pos: [-20.0, 0.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: target
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [20.0, 0.0]
+      angle: 90
+      length: 80
+
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+
+  triple_flanker_orth:
+    - object: line
+      type: flanker
+      pos: [-20.0, 120.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, 120.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: flanker
+      pos: [20.0, 120.0]
+      angle: 0
+      length: 80
+
+    - object: line
+      type: flanker
+      pos: [-20.0, 0.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: target
+      pos: [0.0, 0.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: flanker
+      pos: [20.0, 0.0]
+      angle: 0
+      length: 80
+
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: flanker
+      pos: [0.0, -120.0]
+      angle: 0
+      length: 80
+    - object: line
+      type: flanker
+      pos: [-20.0, -120.0]
+      angle: 0
+      length: 80
