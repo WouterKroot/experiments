@@ -1,5 +1,5 @@
 paths:
-  base_output_dir: "/Users/wouter/Documents/phd/projects/psychophysics/psychopy/experiments/dipper/Output/"
+  base_output_dir: "./Output/"
   exp_output_dir: "Exp"
   test_output_dir: "Test"
   baseline_name: "Baseline"
