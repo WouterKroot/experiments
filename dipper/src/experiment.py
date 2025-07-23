@@ -8,7 +8,7 @@ from typing import Literal
 class Experiment:
     def __init__(self, win,
                  subject_id, nTrials, nBlocks, eyeTracker,
-                 expConfig, path, myConds):
+                 expConfig, path,nullOdds, myConds):
         self.myWin = win
         # if not isinstance(myConds, list):
         #     raise ValueError("`myConds` should be a list of dicts")
@@ -17,7 +17,7 @@ class Experiment:
         self.nTrials = nTrials
         self.nBlocks = nBlocks
         self.expConfig = expConfig
-
+        self.nullOdds = nullOdds
         self.eyeTracker = eyeTracker
         self.path = path
         self.base_name = os.path.basename(path)
@@ -27,7 +27,7 @@ class Experiment:
                                              conditions=self.myConds, originPath=self.path)
         
     def end(self):
-        m_end = visual.TextStim(self.myWin.mywin, color='black', wrapWidth=20,
+        m_end = visual.TextStim(self.myWin.mywin, color=[1, 1, 1], wrapWidth=20,
                                   text = "Thanks for Participating!\nIt's finally over!\n:)""")
         self.myWin.drawOrder(m_end)
         self.eyeTracker.closeTracker()
@@ -39,37 +39,22 @@ class Experiment:
                                   endpoint=False,dtype=int)[1:]
         return breakTrials, totalTrials
     
-    # def openDataFile(self):
-    #     os.makedirs(self.path, exist_ok=True)
-
-    #     fileName = os.path.join(self.path, f"{self.base_name}.csv")
-    #     count = 1
-
-    #     # Keep incrementing if file exists
-    #     while os.path.exists(fileName):
-    #         fileName = os.path.join(self.path, f"{self.base_name}_{count}.csv")
-    #         count += 1
-
-    #     self.dataFile = open(fileName, 'w', buffering=1)  # line-buffered
-    #     self.dataFile.write("id,trial,label,FC,TC,response,RT\n")
-
-    #     return self.dataFile
     def openDataFile(self):
         os.makedirs(self.path, exist_ok=True)
 
         fileName = os.path.join(self.path, f"{self.base_name}.csv")
         count = 1
 
+        # Keep incrementing if file exists
         while os.path.exists(fileName):
             fileName = os.path.join(self.path, f"{self.base_name}_{count}.csv")
             count += 1
 
-        self.dataFile = open(fileName, 'w', buffering=1)
+        self.dataFile = open(fileName, 'w', buffering=1)  # line-buffered
         self.dataFile.write("id,trial,label,FC,TC,response,RT\n")
-
-        self.current_csv_path = fileName  # ← store the current file path
         
         return fileName
+
     
     def run_baseline(self):
         dataFile = self.dataFile
@@ -126,13 +111,18 @@ class Experiment:
                 thisResp = 0
                 thisRT = 99
 
-            dataFile.write(f"{self.id},{thisTrial},{thisLabel},{000},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{000},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
+            
+            
             if not thisLabel.endswith("_null"): 
                 stairs.addResponse(thisResp) # Don't adjust the staircase for a null trial
            
             thisTrial += 1
+            
+        
         psydat_path = os.path.join(self.path, f"{self.id}_baseline.psydat")
         stairs.saveAsPickle(psydat_path)
+        self.dataFile.close()
 
     def doBreak(self,b):
         m_break = visual.TextStim(self.mywin.mywin, color='black', wrapWidth=20,
@@ -159,6 +149,8 @@ class Experiment:
 
         for trial, condition in stairs:
             lines = []
+            thisLabel = condition['label'] 
+            
             if thisTrial in breaks:
                 self.doBreak(b=np.where(breaks == thisTrial)[0][0])
 
@@ -191,26 +183,26 @@ class Experiment:
             # Draw fixation
             self.myWin.diode.color *= -1 # white -- button on
             self.myWin.drawOrder(self.myWin.fixation)
-            core.wait(self.t_fixation)
+            core.wait(self.myWin.t_fixation)
             self.blinkDiode() # black -- button off
 
             # Draw stmiulus
             self.eyeTracker.stimOnset(thisTrial,thisLabel,targetIntensity)
             self.myWin.diode.color *= -1 # white -- button on
             self.myWin.drawOrder(lines)
-            core.wait(self.t_stim)
+            core.wait(self.myWin.t_stim)
             self.blinkDiode() # black -- button off
 
             trialClock.reset()
             self.myWin.drawOrder(self.myWin.blank)
-            allKeys = event.waitKeys(maxWait=self.t_response,
+            allKeys = event.waitKeys(maxWait=self.myWin.t_response,
                         keyList=['left','num_4',
                             'right','num_6',
                             'q','escape'])
             
             thisRT = trialClock.getTime()
-            if thisRT < self.t_response:
-                core.wait(self.t_response - thisRT)
+            if thisRT < self.myWin.t_response:
+                core.wait(self.myWin.t_response - thisRT)
 
             if allKeys:
                 for key in allKeys:
@@ -228,7 +220,7 @@ class Experiment:
                 thisRT = 99
 
             self.eyeTracker.logResponse(thisResp,thisRT)
-            dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
             
             if not thisLabel.endswith("_null"): 
                 stairs.addResponse(thisResp)
@@ -287,9 +279,9 @@ class Experiment:
         return thresh
 
     def reDoBase(self,thresh):
-        m_redo = visual.TextStim(self.myWin.win, color='black', wrapWidth=20,
+        m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], wrapWidth=20,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
-        m_good = visual.TextStim(self.myWin.win, color='black', wrapWidth=20,
+        m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], wrapWidth=20,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\\Go again [y / n]?")
         if thresh > 0.1 or thresh <= 0:
             self.myWin.drawOrder(m_redo)
@@ -309,6 +301,6 @@ class Experiment:
         # Defaults to two frames blink (at 60fps)
         # Blinks the diode to indicate the offset of a stimulus
         # Does not draw any new stimuli, flips the window with existing stuff
-        self.myWin.win.diode.color *= -1
+        self.myWin.diode.color *= -1
         self.myWin.win.flip()
         core.wait(t) # 2 frames

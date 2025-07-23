@@ -29,7 +29,6 @@ exp_blocks:
     n_trials: 10
     n_blocks: 5
     nullOdds: 0.1
-    start_val: baseline_threshold
     flanker_conditions:
       - label: "100"
         FC_factor: 1

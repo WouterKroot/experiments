@@ -7,7 +7,7 @@ class Window:
         self.expConfig = expConfig
         self.fixation = visual.GratingStim(win = window, color=-1, colorSpace='rgb',     tex=None, mask='circle', size=0.1)
         self.blank = visual.TextStim(win = window, text="You should not see this", color=window.color, colorSpace='rgb')
-        self.diode = visual.GratingStim(win = window, color='black',colorSpace='rgb',tex=None,mask='circle',units='pix',size=80,pos=[-780,-440],autoDraw=True)
+        self.diode = visual.GratingStim(win = window, color=[1, 1, 1],colorSpace='rgb',tex=None,mask='circle',units='pix',size=80,pos=[-780,-440],autoDraw=True)
         
          
         self.t_stim = expConfig['fixed_params']['t_stim']
@@ -44,7 +44,7 @@ class Window:
         self.countdown()
         
     def midway(self,nBlocks):
-        midway_msg = visual.TextStim(self.win, color='black', wrapWidth=20,
+        midway_msg = visual.TextStim(self.win, color= 'black', wrapWidth=20,
                                    text = f"The next portion will be the first of {nBlocks} blocks.\nYou will now also see additional lines.\nThere will sometimes be a line ABOVE and a line BELOW the target.\nYou should only respond based on the line in the MIDDLE.\nThe procedure will be the same.\nPress [RIGHT] to continue.")
 
         self.drawOrder(midway_msg)
