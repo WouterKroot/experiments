@@ -138,7 +138,7 @@ for stim_key in stim_keys:
         condition = {
             "label": f"{stim_key}_{label}",          
             "stim_key": stim_key,                      
-            "startVal": baseline_threshold * 1.5,
+            "startVal": baseline_threshold * 2,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],

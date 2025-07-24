@@ -21,14 +21,14 @@ fixed_params:
 exp_blocks:
   baseline:
     test_trials: 5
-    n_trials: 7
+    n_trials: 70
     n_blocks: 1
     start_val: 0.1
   
   main:
     test_trials: 2
     n_trials: 50
-    n_blocks: 5
+    n_blocks: 7
     nullOdds: 0.3
     flanker_conditions:
       - label: "100"
@@ -39,10 +39,8 @@ exp_blocks:
         FC_factor: 4
       - label: "800"
         FC_factor: 8
-      - label: "1200"
-        FC_factor: 12
-      - label: "1400"
-        FC_factor: 14
+      - label: "1600"
+        FC_factor: 16
 
 stimuli:
   target:
@@ -69,44 +67,44 @@ stimuli:
       angle: 90
       length: 40
 
-  # double_flanker:
-  #   - object: line
-  #     type: flanker
-  #     pos: [-50, 100]
-  #     angle: 90
-  #     length: 40
-  #   - object: line
-  #     type: flanker
-  #     pos: [0, 100]
-  #     angle: 90
-  #     length: 40
-  #   - object: line
-  #     type: flanker
-  #     pos: [50, 100]
-  #     angle: 90
-  #     length: 40
+  double_flanker:
+    - object: line
+      type: flanker
+      pos: [-50, 100]
+      angle: 90
+      length: 40
+    - object: line
+      type: flanker
+      pos: [0, 100]
+      angle: 90
+      length: 40
+    - object: line
+      type: flanker
+      pos: [50, 100]
+      angle: 90
+      length: 40
 
-  #   - object: line
-  #     type: target
-  #     pos: [0, 0]
-  #     angle: 90
-  #     length: 40
+    - object: line
+      type: target
+      pos: [0, 0]
+      angle: 90
+      length: 40
 
-  #   - object: line
-  #     type: flanker
-  #     pos: [-50, -100]
-  #     angle: 90
-  #     length: 40
-  #   - object: line
-  #     type: flanker
-  #     pos: [0, -100]
-  #     angle: 90
-  #     length: 50
-  #   - object: line
-  #     type: flanker
-  #     pos: [50, -100]
-  #     angle: 90
-  #     length: 40
+    - object: line
+      type: flanker
+      pos: [-50, -100]
+      angle: 90
+      length: 40
+    - object: line
+      type: flanker
+      pos: [0, -100]
+      angle: 90
+      length: 50
+    - object: line
+      type: flanker
+      pos: [50, -100]
+      angle: 90
+      length: 40
 
   triple_flanker:
     - object: line

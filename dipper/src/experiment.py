@@ -146,7 +146,8 @@ class Experiment:
 
         trialClock = core.Clock()
         thisTrial = 0
-
+        
+        self.myWin.countdown()
         for trial, condition in stairs:
             lines = []
             thisLabel = condition['label'] 
@@ -284,7 +285,7 @@ class Experiment:
         m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
         m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\\Go again [y / n]?")
+                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")
         if thresh > 0.1 or thresh <= 0:
             self.myWin.drawOrder(m_redo)
             keys = event.waitKeys(keyList=['y','n'])
