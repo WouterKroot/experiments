@@ -14,6 +14,7 @@ from src.experiment import Experiment
 
 is_test = False
 tracker = True
+
 #%% Test or experiment
 # while test not in ["test", "experiment"]:
 #     try:
@@ -26,6 +27,7 @@ tracker = True
 #         sys.exit()
 
 # is_test = 1 if test == "test" else 0
+
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
 # Eyetracking
@@ -63,7 +65,7 @@ print(f"Using config file: {default_config_path}")
 
 # Load config
 expConfig = utils.load_config(default_config_path)
-print(f"✅ Using config: {default_config_path}")
+print(f"Using config: {default_config_path}")
 
 # get output path
 base_dir = expConfig["paths"]["base_output_dir"]
