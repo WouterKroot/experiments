@@ -1,4 +1,6 @@
 import os
+import sys
+import threading
 from psychopy import data, core, visual, event
 import pandas as pd
 import pylab
@@ -10,8 +12,6 @@ class Experiment:
                  subject_id, nTrials, nBlocks, eyeTracker,
                  expConfig, path,nullOdds, myConds):
         self.myWin = win
-        # if not isinstance(myConds, list):
-        #     raise ValueError("`myConds` should be a list of dicts")
         self.myConds = myConds
         self.id = subject_id
         self.nTrials = nTrials
@@ -26,13 +26,7 @@ class Experiment:
                                              nTrials=self.nTrials,
                                              conditions=self.myConds, originPath=self.path)
         
-    def end(self):
-        m_end = visual.TextStim(self.myWin.mywin, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                  text = "Thanks for Participating!\nIt's finally over!\n:)""")
-        self.myWin.drawOrder(m_end)
-        self.eyeTracker.closeTracker()
-        core.wait(5)
-        
+
     def getBreaks(self):
         totalTrials = int(len(self.myConds) * self.nTrials)
         breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks,
@@ -55,7 +49,6 @@ class Experiment:
         
         return fileName
 
-    
     def run_baseline(self):
         dataFile = self.dataFile
         stairs = self.stairs
@@ -135,10 +128,9 @@ class Experiment:
         event.waitKeys(keyList=['right','num_6'])
         self.myWin.countdown()
 
-    #TODO: adjust the stimulus creation to be from the stimulus config file and not hardcoded
-    # Check whether FC is tracked by multistairhandler (contrast), should be one variable given to all flanker lines, not separate for each line, so target vs flankers
     def run_main(self,dataFile):
         totalTrials = self.nTrials * self.nBlocks
+        
         # we get drawable line objects from the stim_dict in self.myWin.stimuli, then we filter 
         breaks, totalTrials = self.getBreaks()
 
@@ -149,6 +141,8 @@ class Experiment:
         
         self.myWin.countdown()
         for trial, condition in stairs:
+            self.myWin.checkQuit()
+            
             lines = []
             thisLabel = condition['label'] 
             
@@ -174,12 +168,6 @@ class Experiment:
             if np.random.random() <= self.nullOdds:
                 targetIntensity = 0
                 thisLabel += '_null'
-
-            #TODO: make sure that this actually returns and draws the right stimulus for the cond
-        
-            # self.mywin.line_target.contrast = -targetIntensity
-            # self.mywin.line_top.contrast = -condition['FC']
-            # self.mywin.line_bottom.contrast = -condition['FC']
 
             # Draw fixation
             self.myWin.diode.color *= -1 # white -- button on
@@ -211,11 +199,10 @@ class Experiment:
                         thisResp = 0
                     elif key in ['right','num_6']:
                         thisResp = 1
-                    else:# key in ['q','escape']:
+                    else:
                         self.eyeTracker.closeTracker()
                         core.quit()
-#                    else:
-#                        raise ValueError(f"Unexpected key: {key}")
+
             else:
                 thisResp = 0
                 thisRT = 99
@@ -232,32 +219,14 @@ class Experiment:
             
             print(thisTrial)
         
-        # Make a version 2, where this is done differently
-        os.makedirs(self.path, exist_ok=True)
-        psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
-        stairs.saveAsPickle(psydat_path)
+            os.makedirs(self.path, exist_ok=True)
+            psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
+            stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
+            
+        self.myWin.checkQuit()
+        
+        self.myWin.end()
     
-    # def getThresholdFromBase(self):
-    #     threshVal = 0.5 # set to 0.5 for Yes/No (or PSE). Set to 0.8 for a 2AFC threshold
-    #     expectedMin = 0.0 # set to zero for Yes/No (or PSE). Set to 0.5 for 2AFC
-
-    #     thisFileName = f'{self.path}/{self.id}_baseline.csv'
-    #     thisDat = pd.read_csv(thisFileName)
-    #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
-
-    #     allIntensities = thisDat['TC'].tolist()
-    #     allResponses = thisDat['response'].tolist()
-
-    #     i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
-    #     combinedInten, combinedResp, combinedN = i, r, n
-    #     combinedN = pylab.array(combinedN)  # convert to array so we can do maths
-    #     fit = data.FitLogistic(combinedInten, combinedResp, 
-    #                            expectedMin = expectedMin, 
-    #                            sems = 1.0 / combinedN,
-    #                            optimize_kws={'maxfev':int(1e6)})
-    #     thresh = fit.inverse(threshVal)
-    #     print(f'-----------Threshold for [{id}, Baseline] is: {thresh}-----------')
-    #     return(thresh)
     def getThresholdFromBase(self, file_path):
         threshVal = 0.5
         expectedMin = 0.0
@@ -308,3 +277,6 @@ class Experiment:
         self.myWin.diode.color *= -1
         self.myWin.win.flip()
         core.wait(t) # 2 frames
+    
+
+        
