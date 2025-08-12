@@ -10,7 +10,7 @@ from typing import Literal
 class Experiment:
     def __init__(self, win,
                  subject_id, nTrials, nBlocks, eyeTracker,
-                 expConfig, path,nullOdds, myConds):
+                 expConfig, path, nullOdds, myConds):
         self.myWin = win
         self.myConds = myConds
         self.id = subject_id
@@ -25,10 +25,9 @@ class Experiment:
                                              method='random',
                                              nTrials=self.nTrials,
                                              conditions=self.myConds, originPath=self.path)
-        
 
     def getBreaks(self):
-        totalTrials = int(len(self.myConds) * self.nTrials)
+        totalTrials = int(len(self.myConds) * self.nTrials + self.nullOdds * self.nTrials)
         breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks,
                                   endpoint=False,dtype=int)[1:]
         return breakTrials, totalTrials

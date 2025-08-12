@@ -130,7 +130,7 @@ else:
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 if baseline_threshold < 0 or baseline_threshold > 0.1:
-        baseline_threshold = 0.02 #0.01
+        baseline_threshold = 0.015 #0.01
         
 # get conditions:
 experimentConditions = []
