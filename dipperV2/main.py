@@ -12,8 +12,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = True 
-tracker = False
+is_test = False 
+tracker = True
 
 #%% Test or experiment
 # while test not in ["test", "experiment"]:

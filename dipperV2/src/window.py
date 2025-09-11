@@ -52,7 +52,7 @@ class Window:
         self.countdown()
     
     def end(self):
-        m_end = visual.TextStim(self.win.mywin, color=[1, 1, 1], height = 32, wrapWidth=600,
+        m_end = visual.TextStim(self.win, color=[1, 1, 1], height = 32, wrapWidth=600,
                                 text = "Thanks for Participating!\nIt's finally over!\n:)""")
         self.drawOrder(m_end)
         core.wait(5)
