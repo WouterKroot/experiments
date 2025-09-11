@@ -162,4 +162,3 @@ if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
     main.run_main(main_output)
-    main.end()

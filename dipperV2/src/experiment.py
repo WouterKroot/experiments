@@ -223,7 +223,7 @@ class Experiment:
             stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
             
         self.myWin.checkQuit()
-        
+        self.eyeTracker.closeTracker()
         self.myWin.end()
     
     def getThresholdFromBase(self, file_path):
