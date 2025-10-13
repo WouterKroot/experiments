@@ -108,26 +108,26 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.05,      # a bit above threshold to allow both up/down movement
-     'maxVal': 0.2,         # upper bound for the staircase
-     'minVal': 0.0005,      # lower bound
-     'stepSizes': [1.0, 0.7, 0.3, 0.15, 0.08, 0.04],  # big → small log steps
+     'startVal': 0.015,      # a bit above threshold to allow both up/down movement
+     'maxVal': 0.05,         # upper bound for the staircase
+     'minVal': 0.0015,      # lower bound
+     'stepSizes': [5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
      'stepType': 'log',
-     'nReversals': 12,      # enough for reliable slope + threshold
+     'nReversals': 20,      # enough for reliable slope + threshold
      'nUp': 1,
      'nDown': 1}            # targets ~70.7%
 ]
-        
+
 redo = True
-# while redo:
-#     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
-#     file_path = baseline.openDataFile()
-#     baseline.run_baseline()  # This appends to the same file
-#     baseline_threshold = baseline.getThresholdFromBase(file_path)
-#     redo = baseline.reDoBase(baseline_threshold)
-#     if redo:
-#         myWin.countdown()
-baseline_threshold = 0.015 
+while redo:
+    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
+    file_path = baseline.openDataFile()
+    baseline.run_baseline()  # This appends to the same file
+    baseline_threshold = baseline.getThresholdFromBase(file_path)
+    redo = baseline.reDoBase(baseline_threshold)
+    if redo:
+        myWin.countdown()
+
         
 #%% Load in main setting and run
 if is_test == 1:

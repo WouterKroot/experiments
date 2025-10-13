@@ -21,10 +21,10 @@ fixed_params:
 
 exp_blocks:
   baseline:
-    test_trials:  60
-    n_trials: 60
+    test_trials:  10
+    n_trials: 50
     n_blocks: 1
-    start_val: 0.05
+    start_val: 0.015
   
   main:
     test_trials: 60
