@@ -13,7 +13,7 @@ from src.window import Window
 from src.experiment import Experiment
 
 is_test = False 
-tracker = True
+tracker = False
 
 #%% Test or experiment
 # while test not in ["test", "experiment"]:
@@ -104,22 +104,30 @@ else:
     nTrials =  expConfig["exp_blocks"]["baseline"]["n_trials"]
 
 nBlocks = expConfig["exp_blocks"]["baseline"]["n_blocks"]
-nullOdds = 0.3
+nullOdds = expConfig["fixed_params"]["nullOdds"]
 
 baselineCondition = [
-    {'label':'target','startVal':0.1,'maxVal':0.1,'minVal':0.0,
-        'stepSizes':0.1,'stepType':'log','nReversals':1,
-        'nUp':1,'nDown':1}]
+    {'label': 'target',
+     'startVal': 0.05,      # a bit above threshold to allow both up/down movement
+     'maxVal': 0.2,         # upper bound for the staircase
+     'minVal': 0.0005,      # lower bound
+     'stepSizes': [1.0, 0.7, 0.3, 0.15, 0.08, 0.04],  # big → small log steps
+     'stepType': 'log',
+     'nReversals': 12,      # enough for reliable slope + threshold
+     'nUp': 1,
+     'nDown': 1}            # targets ~70.7%
+]
         
 redo = True
-while redo:
-    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
-    file_path = baseline.openDataFile()
-    baseline.run_baseline()  # This appends to the same file
-    baseline_threshold = baseline.getThresholdFromBase(file_path)
-    redo = baseline.reDoBase(baseline_threshold)
-    if redo:
-        myWin.countdown()
+# while redo:
+#     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
+#     file_path = baseline.openDataFile()
+#     baseline.run_baseline()  # This appends to the same file
+#     baseline_threshold = baseline.getThresholdFromBase(file_path)
+#     redo = baseline.reDoBase(baseline_threshold)
+#     if redo:
+#         myWin.countdown()
+baseline_threshold = 0.015 
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -137,28 +145,51 @@ experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
 
 for stim_key in stim_keys:
-    for cond in expConfig['exp_blocks']['main']['flanker_conditions']:
-        label = cond['label']
-        factor = cond['FC_factor']
-
+    if stim_key == "target":
+        # target-only condition (no flanker)
         condition = {
-            "label": f"{stim_key}_{label}",          
-            "stim_key": stim_key,                      
-            "startVal": baseline_threshold * 2,
+            "label": f"{stim_key}",
+            "stim_key": stim_key,
+            "startVal": baseline_threshold,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],
             "stepType": expConfig['fixed_params']["step_type"],
             "nReversals": expConfig['fixed_params']["reversals"],
-            "nUp":  expConfig['fixed_params']["n_up"],
+            "nUp": expConfig['fixed_params']["n_up"],
             "nDown": expConfig['fixed_params']["n_down"],
-            "FC": baseline_threshold * factor
+            "FC": 0
         }
+        experimentConditions.append(condition) 
 
-        experimentConditions.append(condition)
+    else:
+        # add all flanker conditions for other stim_key
+        for cond in expConfig['exp_blocks']['main']['flanker_conditions']:
+            label = cond['label']
+            factor = cond['FC_factor']
 
+            condition = {
+                "label": f"{stim_key}_{label}",
+                "stim_key": stim_key,
+                "startVal": baseline_threshold,
+                "maxVal": expConfig['fixed_params']["max_val"],
+                "minVal": expConfig['fixed_params']["min_val"],
+                "stepSizes": expConfig['fixed_params']["step_size"],
+                "stepType": expConfig['fixed_params']["step_type"],
+                "nReversals": expConfig['fixed_params']["reversals"],
+                "nUp": expConfig['fixed_params']["n_up"],
+                "nDown": expConfig['fixed_params']["n_down"],
+                "FC": baseline_threshold * factor,
+            }
+
+            experimentConditions.append(condition)
+            
+print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentConditions}")
+#%%
 # Run the main experiment
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
     main.run_main(main_output)
+
+# %%

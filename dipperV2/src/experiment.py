@@ -250,6 +250,7 @@ class Experiment:
         print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
         return thresh
 
+        
     def reDoBase(self,thresh):
         m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
