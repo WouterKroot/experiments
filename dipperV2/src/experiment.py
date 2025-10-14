@@ -27,10 +27,11 @@ class Experiment:
                                              conditions=self.myConds, originPath=self.path)
 
     def getBreaks(self):
-        totalTrials = int(len(self.myConds) * self.nTrials + self.nullOdds * self.nTrials)
-        breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks,
+        totalTrials = int(len(self.myConds) * self.nTrials * (1 + self.nullOdds))
+        breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks + 1,
                                   endpoint=False,dtype=int)[1:]
         return breakTrials, totalTrials
+
     
     def openDataFile(self):
         os.makedirs(self.path, exist_ok=True)
@@ -47,7 +48,7 @@ class Experiment:
         self.dataFile.write("id,trial,label,FC,TC,response,RT\n")
         
         return fileName
-
+    
     def run_baseline(self):
         dataFile = self.dataFile
         stairs = self.stairs
@@ -115,26 +116,176 @@ class Experiment:
         psydat_path = os.path.join(self.path, f"{self.id}_baseline.psydat")
         stairs.saveAsPickle(psydat_path)
         self.dataFile.close()
+        print("Baseline done, break!")
 
-    def doBreak(self,b):
-        m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
-                                  text=f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.")
-        m_continue = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
-                                  text=f"You have finished block {b+1}.\nYou can continue when ready.\nPress [RIGHT] to continue.\n")
-        self.myWin.drawOrder(m_break)
-        core.wait(self.myWin.t_break)
-        self.myWin.drawOrder(m_continue)
-        event.waitKeys(keyList=['right','num_6'])
-        self.myWin.countdown()
-
-    def run_main(self,dataFile):
-        totalTrials = self.nTrials * self.nBlocks
+    def doBreak(self,b, middle=False):
+        print(f'this is middle: {middle}')
         
+        if middle:
+            m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
+                        text= (
+                f"You have finished block {b+1}.\n"
+                "Take a LARGE break (~10 minutes).\n"
+                "Stretch your legs, get some water, or rest your eyes.\n"
+                "Press [RIGHT] when ready to continue."
+            ))
+
+            self.myWin.drawOrder(m_break)
+            event.waitKeys(keyList=['right', 'num_6'])
+            self.myWin.countdown()
+            
+        else:
+            m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
+                                    text=(f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.\n"
+                                    "Press [RIGHT] to continue."))
+
+            self.myWin.drawOrder(m_break)
+            event.waitKeys(keyList=['right','num_6'])
+            self.myWin.countdown()
+        
+    def run_tutorial(self):
+        win = self.myWin.win  
+
+        def show_text(msg, wait_keys=['right', 'num_6'], color='black'):
+            text = visual.TextStim(win, color=color, text=msg)
+            text.draw(); win.flip()
+            event.waitKeys(keyList=wait_keys)
+
+        show_text("Welcome to the Tutorial.\n\nTo begin, press the right arrow.")
+
+        show_text("First, you will see a blank screen with a fixation point.\n\nTo continue, press the right arrow.")
+        
+        self.myWin.drawOrder(self.myWin.fixation)
+        event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
+
+        show_text(
+            "In the experiment this fixation point appears briefly.\n"
+            "Directly afterwards, the stimulus will appear.\n"
+            "It is important to focus on the line in the middle (the target).\n"
+            "A red circle will mark it here, but not in the real experiment.\n\n"
+            "To continue, press the right arrow."
+        )
+
+        top = visual.line.Line(win=self.myWin.win, start=(0, 30), end=(0, 70), pos=(0, 60), ori=0.0, contrast=1.0, color=-1)
+        middle = visual.line.Line(win=self.myWin.win, start=(0, -20), end=(0, 20), pos=(0, 0), ori=0.0, contrast=1.0, color=-1)
+        bottom = visual.line.Line(win=self.myWin.win, start=(0, -70), end=(0, -30), pos=(0, -60), ori=0.0, contrast=1.0, color=-1)
+        red_circle = visual.Circle(win=self.myWin.win, fillColor=None, radius=35, lineColor='red', lineWidth=3)
+
+        self.myWin.drawOrder(self.myWin.fixation)
+        core.wait(self.myWin.t_fixation)
+        
+        self.myWin.drawOrder([bottom, middle, top, red_circle])
+        event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
+
+        show_text(
+            "Now it's your turn!\n"
+            "Focus on the target.\n"
+            "Press RIGHT if the target is visible.\n"
+            "Press LEFT if it is not visible.\n"
+            "You have 1.2 seconds to respond.\n\n"
+            "To continue, press the right arrow."
+        )
+        
+        def show_trial(stims, visible=True):
+                """Helper: show fixation, then stimuli, then collect response."""
+                # Fixation
+                self.myWin.drawOrder(self.myWin.fixation)
+                core.wait(0.3)
+
+                # Stimuli
+                self.myWin.drawOrder(stims)
+                core.wait(0.2)
+                self.myWin.win.flip()  # blank screen
+
+                # Response
+                keys = event.waitKeys(
+                    maxWait=1.2,
+                    keyList=['left', 'num_4', 'right', 'num_6']
+                )
+
+                if not keys:
+                    show_text("You need to press LEFT or RIGHT.\n\nPress RIGHT to continue.",
+                            ['right', 'num_6'], 'red')
+                    return 0
+
+                key = keys[0]
+                if (visible and key in ['right', 'num_6']) or (not visible and key in ['left', 'num_4']):
+                    show_text("Correct!\n\nPress RIGHT to continue.", ['right', 'num_6'], 'green')
+                    return 1
+                else:
+                    msg = ("Incorrect.\n" +
+                        ("Target visible → press RIGHT." if visible else "Target invisible → press LEFT.") +
+                        "\n\nPress RIGHT to continue.")
+                    show_text(msg, ['right', 'num_6'], 'red')
+                    return 0
+        
+        correct_streak = 0
+        trial_num = 0
+
+        while correct_streak < 3 and trial_num < 10:
+            trial_num += 1
+            correct_streak = 0  # restart streak each round
+
+            # Trial 1: visible (single line)
+            middle = visual.Line(
+                win=self.myWin.win, start=(0, -20), end=(0, 20),
+                pos=(0, 0), ori=0.0, color=-1, lineWidth=3
+            )
+            correct_streak += show_trial([middle], visible=True)
+
+            # Trial 2: visible (3 lines)
+            top = visual.Line(
+                win=self.myWin.win, start=(0, -20), end=(0, 20),
+                pos=(0, 60), ori=0.0, color=-1, lineWidth=3
+            )
+            middle = visual.Line(
+                win=self.myWin.win, start=(0, -20), end=(0, 20),
+                pos=(0, 0), ori=0.0, color=-1, lineWidth=3
+            )
+            bottom = visual.Line(
+                win=self.myWin.win, start=(0, -20), end=(0, 20),
+                pos=(0, -60), ori=0.0, color=-1, lineWidth=3
+            )
+            correct_streak += show_trial([bottom, middle, top], visible=True)
+
+            # Trial 3: invisible (9 lines grid)
+            all_stims = []
+            for y in [60, 0, -60]:
+                for x in [-100, 0, 100]:
+                    # Skip the center (target) completely
+                    if x == 0 and y == 0:
+                        continue
+                    all_stims.append(
+                        visual.Line(
+                            win=self.myWin.win, start=(0, -20), end=(0, 20),
+                            pos=(x, y), ori=0.0, color=-1, lineWidth=3
+                        )
+                    )
+            correct_streak += show_trial(all_stims, visible=False)
+
+        show_text(
+            "Sometimes the target will be barely visible, or absent.\n"
+            "Press RIGHT if you see it, LEFT if you do not.\n"
+            "You won't receive feedback during the real experiment.\n\n"
+            "To continue, press the right arrow."
+        )
+
+        show_text("You have finished the tutorial!\nGood luck with the experiment!\n"
+                  "Press RIGHT to continue to the actual experiment.")
+        core.wait(3)
+        event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
+    
+        
+    def run_main(self,dataFile):
+        totalTrials = self.nTrials * self.nBlocks 
         # we get drawable line objects from the stim_dict in self.myWin.stimuli, then we filter 
         breaks, totalTrials = self.getBreaks()
+        middle_index = len(breaks) // 2
+        middle_trial = breaks[middle_index] if len(breaks) > 0 else -1
+
+        print(f"Total trials: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
 
         stairs = self.stairs
-
         trialClock = core.Clock()
         thisTrial = 0
         
@@ -146,7 +297,13 @@ class Experiment:
             thisLabel = condition['label'] 
             
             if thisTrial in breaks:
-                self.doBreak(b=np.where(breaks == thisTrial)[0][0])
+                
+                b_idx = np.where(breaks == thisTrial)[0][0]
+                print(f"b_idx: {b_idx}")
+                
+                middle_break = (thisTrial == middle_trial)
+
+                self.doBreak(b=b_idx, middle=middle_break)
 
             if self.eyeTracker.doTracking:
                 self.eyeTracker.tracker.startRecording(1, 1, 1, 1)
@@ -227,7 +384,7 @@ class Experiment:
         self.myWin.end()
     
     def getThresholdFromBase(self, file_path):
-        threshVal = 0.5
+        threshVal = 0.75
         expectedMin = 0.0
 
         thisDat = pd.read_csv(file_path)

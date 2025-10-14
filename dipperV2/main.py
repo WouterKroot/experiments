@@ -13,7 +13,7 @@ from src.window import Window
 from src.experiment import Experiment
 
 is_test = False 
-tracker = False
+tracker = False 
 
 #%% Test or experiment
 # while test not in ["test", "experiment"]:
@@ -78,7 +78,7 @@ else:
     main_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"], expConfig["paths"]["main_name"], f"{sub_id}_main")
 
 if is_test == True:
-    fullscr = False
+    fullscr = True 
 else:
     fullscr = True
     
@@ -108,8 +108,8 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.015,      # a bit above threshold to allow both up/down movement
-     'maxVal': 0.05,         # upper bound for the staircase
+     'startVal': 0.02,      # a bit above threshold to allow both up/down movement
+     'maxVal': 0.04,         # upper bound for the staircase
      'minVal': 0.0015,      # lower bound
      'stepSizes': [5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
      'stepType': 'log',
@@ -119,15 +119,15 @@ baselineCondition = [
 ]
 
 redo = True
-while redo:
-    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
-    file_path = baseline.openDataFile()
-    baseline.run_baseline()  # This appends to the same file
-    baseline_threshold = baseline.getThresholdFromBase(file_path)
-    redo = baseline.reDoBase(baseline_threshold)
-    if redo:
-        myWin.countdown()
-
+# while redo:
+#     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
+#     file_path = baseline.openDataFile()
+#     baseline.run_baseline()  # This appends to the same file
+#     baseline_threshold = baseline.getThresholdFromBase(file_path)
+#     redo = baseline.reDoBase(baseline_threshold)
+#     if redo:
+#         myWin.countdown()
+baseline_threshold = 0.02 
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -190,6 +190,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
+    #main.run_tutorial()
     main.run_main(main_output)
 
-# %%
