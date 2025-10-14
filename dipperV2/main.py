@@ -13,7 +13,7 @@ from src.window import Window
 from src.experiment import Experiment
 
 is_test = False 
-tracker = False 
+tracker = True 
 
 #%% Test or experiment
 # while test not in ["test", "experiment"]:
@@ -119,15 +119,16 @@ baselineCondition = [
 ]
 
 redo = True
-# while redo:
-#     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
-#     file_path = baseline.openDataFile()
-#     baseline.run_baseline()  # This appends to the same file
-#     baseline_threshold = baseline.getThresholdFromBase(file_path)
-#     redo = baseline.reDoBase(baseline_threshold)
-#     if redo:
-#         myWin.countdown()
-baseline_threshold = 0.02 
+while redo:
+    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
+    file_path = baseline.openDataFile()
+    baseline.run_baseline()  # This appends to the same file
+    baseline_threshold = baseline.getThresholdFromBase(file_path)
+    redo = baseline.reDoBase(baseline_threshold)
+    if redo:
+        myWin.countdown()
+        
+#baseline_threshold = 0.02 
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -190,6 +191,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
-    #main.run_tutorial()
+    main.run_tutorial()
     main.run_main(main_output)
 
