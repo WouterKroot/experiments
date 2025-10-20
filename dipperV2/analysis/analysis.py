@@ -47,7 +47,7 @@ print(f"Found {len(labels)}") # conditions: {labels}")
 #%% seperate dataframes per participant
 participant_dfs = {participant_id: main_df[main_df['id'] == participant_id] for participant_id in ids}
 
-#%% Clean data
+#%% Clean data from null trials and check n false positives
 fit_results = {}
 for participant_id, df in participant_dfs.items():
     cleaned_df, num_false_positives = scripts.functions.clean_df(df)
@@ -55,13 +55,16 @@ for participant_id, df in participant_dfs.items():
     participant_dfs[participant_id] = cleaned_df
 
     fit_result = smf.glm(
-        formula='response ~ TC * FC * condition',
+        formula='response ~ TC * FC * C(condition, Treatment(reference="target"))',
         data=cleaned_df,
         family=sm.families.Binomial(link=sm.families.links.CLogLog()),
         var_weights=cleaned_df['weight']
         ).fit()
     fit_results[participant_id] = fit_result
 
+for participant_id, fit_result in fit_results.items():
+    print(f"Participant: {participant_id}, coefficients:")
+    print(fit_result.summary())
 
 #%%
 # for each id, create a summary plot fitting raw data using weighted Weibull function
