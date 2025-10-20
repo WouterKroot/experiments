@@ -12,8 +12,8 @@ class Stimulus:
             if stim_type == "line":
                 line = visual.Line(
                     win=win,
-                    start=stim_def["start"],
-                    end=stim_def["end"],
+                    #start=stim_def["start"],
+                    #end=stim_def["end"],
                     pos=stim_def.get("pos", (0, 0)),
                     lineWidth=stim_def.get("lineWidth", 4.2),
                     color=stim_def.get("color", "black"),

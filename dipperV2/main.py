@@ -7,26 +7,12 @@ import yaml
 from utils import utils
 from psychopy import core, visual, data, event, monitors, logging
 import src.eyelink as eyelink
-import src.eyelink as eyelink
 from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
 is_test = False 
 tracker = True 
-
-#%% Test or experiment
-# while test not in ["test", "experiment"]:
-#     try:
-#         test = input("Run as 'test' or 'experiment'? ").strip().lower()
-        
-#         if test not in ["test", "experiment"]:
-#             print("Invalid input. Please type 'test' or 'experiment'.")
-#     except (EOFError, KeyboardInterrupt):
-#         print("User cancelled. Exiting.")
-#         sys.exit()
-
-# is_test = 1 if test == "test" else 0
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -41,22 +27,6 @@ else:
 default_config_dir = "./config"
 default_config_filename = "expConfig.yaml"
 default_config_path = os.path.join(default_config_dir, default_config_filename)
-
-# Get config file from CLI argument (ignoring flags)
-# user_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
-# if user_args:
-#     user_config = user_args[0]
-    
-#     if os.path.isabs(user_config):
-#         config_path = user_config
-#     elif os.path.exists(user_config):
-#         config_path = user_config  # relative path provided and valid
-#     else:
-#         config_path = os.path.join(default_config_dir, user_config)
-# else:
-#     config_path = default_config_path
-# # Expand and absolutize
-# config_path = os.path.abspath(os.path.expanduser(config_path))
 
 if not os.path.exists(default_config_path):
     raise FileNotFoundError(f"Configuration file not found: {default_config_path}")
@@ -78,7 +48,7 @@ else:
     main_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"], expConfig["paths"]["main_name"], f"{sub_id}_main")
 
 if is_test == True:
-    fullscr = True 
+    fullscr = False 
 else:
     fullscr = True
     
@@ -108,17 +78,17 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.02,      # a bit above threshold to allow both up/down movement
+     'startVal': 0.03,      # a bit above threshold to allow both up/down movement
      'maxVal': 0.04,         # upper bound for the staircase
      'minVal': 0.0015,      # lower bound
      'stepSizes': [5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
      'stepType': 'log',
      'nReversals': 20,      # enough for reliable slope + threshold
      'nUp': 1,
-     'nDown': 1}            # targets ~70.7%
+     'nDown': 1}            # targets ~50%
 ]
 
-redo = True
+redo = False
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
     file_path = baseline.openDataFile()
@@ -128,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-#baseline_threshold = 0.02 
+baseline_threshold = 0.02 
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -151,7 +121,7 @@ for stim_key in stim_keys:
         condition = {
             "label": f"{stim_key}",
             "stim_key": stim_key,
-            "startVal": baseline_threshold,
+            "startVal": baseline_threshold * 1.5,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],
@@ -172,7 +142,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": baseline_threshold,
+                "startVal": baseline_threshold * 1.5,
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
                 "stepSizes": expConfig['fixed_params']["step_size"],

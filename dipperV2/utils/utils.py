@@ -2,6 +2,7 @@ import json
 import yaml
 import os
 import math
+import pandas as pd
 from psychopy import visual
 
 def SubNumber(filename):
@@ -53,3 +54,30 @@ def load_stimuli(myWin):
             'draw_lines': drawables
         }
     return processed_stimuli
+        
+def load_data(root_path):
+    dfs = []
+    
+    # loop over folders inside root_path
+    for folder_name in os.listdir(root_path):
+        folder_path = os.path.join(root_path, folder_name)  # full path
+        
+        # only process directories
+        if not os.path.isdir(folder_path):
+            continue
+        
+        # loop over files in the folder
+        for file_name in os.listdir(folder_path):
+            if file_name.endswith('.csv'):
+                csv_path = os.path.join(folder_path, file_name)
+                df = pd.read_csv(csv_path)
+                print(f"Loaded: {csv_path}")
+                dfs.append(df)
+    
+    if dfs:
+        combined_df = pd.concat(dfs, ignore_index=True)
+        return combined_df
+    else:
+        print("No CSV files found.")
+    
+    
