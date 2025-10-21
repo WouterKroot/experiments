@@ -88,7 +88,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = False
+redo = True
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
     file_path = baseline.openDataFile()
@@ -98,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-baseline_threshold = 0.02 
+#baseline_threshold = 0.02 
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -121,7 +121,7 @@ for stim_key in stim_keys:
         condition = {
             "label": f"{stim_key}",
             "stim_key": stim_key,
-            "startVal": baseline_threshold * 1.5,
+            "startVal": baseline_threshold,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],
@@ -142,7 +142,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": baseline_threshold * 1.5,
+                "startVal": baseline_threshold,
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
                 "stepSizes": expConfig['fixed_params']["step_size"],

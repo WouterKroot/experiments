@@ -28,7 +28,7 @@ class Experiment:
 
     def getBreaks(self):
         totalTrials = int(len(self.myConds) * self.nTrials * (1 + self.nullOdds))
-        breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks + 1,
+        breakTrials = np.linspace(start=0,stop=totalTrials, num=self.nBlocks,
                                   endpoint=False,dtype=int)[1:]
         return breakTrials, totalTrials
 
@@ -276,13 +276,15 @@ class Experiment:
         event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
     
     def run_main(self, dataFile): 
-        breaks, totalTrials = self.getBreaks() #total trials for printing, staircase trials are nTrials * Blocks
+        breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
+        stairs = self.stairs
+        totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials) # staircase trials
+    
         middle_index = len(breaks) // 2
         middle_trial = breaks[middle_index] if len(breaks) > 0 else -1
 
         print(f"Total trials: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
 
-        stairs = self.stairs
         trialClock = core.Clock()
         thisTrial = 0         # counts all displayed trials (including nulls)
         stairTrialCount = 0   # counts only trials added to staircase
@@ -290,8 +292,10 @@ class Experiment:
         self.myWin.countdown()
 
         # Loop until all staircase trials are completed
-        while stairTrialCount < stairs.nTrials * self.nBlocks:
+        while stairs.totalTrials < totalStaircaseTrials: 
             self.myWin.checkQuit()
+            print('===============')
+            print(f"stair case counter: {stairs.totalTrials},\n total staircase trials (no null): {totalStaircaseTrials}, total for breaks: {totalTrials}")
 
             # --- Draw next staircase trial ---
             stairs.next()  
