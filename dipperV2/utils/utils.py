@@ -2,6 +2,7 @@ import json
 import yaml
 import os
 import math
+import numpy as np
 import pandas as pd
 from psychopy import visual
 
@@ -80,4 +81,28 @@ def load_data(root_path):
     else:
         print("No CSV files found.")
     
-    
+def contrast_steps_log(baseline, max_val=1.0, n_steps=7):
+    """
+    Generate contrast steps starting from baseline.
+    - The first few steps are fixed ratios: 1, 1.5, 3
+    - Remaining steps are log-spaced up to max_val (1.0)
+    """
+    first_ratios = np.array([1, 1.5, 3])
+    first_steps = baseline * first_ratios
+    first_steps = first_steps[first_steps <= max_val]
+
+    if first_steps[-1] < max_val:
+        num_remaining = n_steps - len(first_steps)
+        if num_remaining > 0:
+            remaining_steps = np.logspace(
+                np.log10(first_steps[-1]),
+                np.log10(max_val),
+                num=num_remaining + 1,
+            )[1:]  # skip first point
+            contrasts = np.concatenate([first_steps, remaining_steps])
+        else:
+            contrasts = first_steps
+    else:
+        contrasts = first_steps
+
+    return contrasts 

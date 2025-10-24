@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = False 
-tracker = True 
+is_test = True 
+tracker = False 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -88,7 +88,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = True
+redo = False
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
     file_path = baseline.openDataFile()
@@ -98,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-#baseline_threshold = 0.02 
+baseline_threshold = 0.02
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -108,12 +108,13 @@ else:
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-if baseline_threshold < 0 or baseline_threshold > 0.1:
-        baseline_threshold = 0.015 #0.01
+if baseline_threshold < 0 or baseline_threshold > 0.03:
+        baseline_threshold = 0.02 #0.01
         
 # get conditions:
 experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
+contrast_sequence = utils.contrast_steps_log(baseline_threshold, max_val=1.0, n_steps=7)
 
 for stim_key in stim_keys:
     if stim_key == "target":
@@ -138,7 +139,15 @@ for stim_key in stim_keys:
         for cond in expConfig['exp_blocks']['main']['flanker_conditions']:
             label = cond['label']
             factor = cond['FC_factor']
-
+            
+            if factor > 32:
+                fc_value = baseline_threshold * 32 + ((1.0 - baseline_threshold*32) / 2)
+                print(f"baseline: {baseline_threshold}, fc_value: {fc_value}")
+            else:
+                fc_value = baseline_threshold*factor
+                
+            
+            print(f"{stim_key}, {label}", {fc_value})
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
@@ -150,7 +159,7 @@ for stim_key in stim_keys:
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],
                 "nDown": expConfig['fixed_params']["n_down"],
-                "FC": baseline_threshold * factor,
+                "FC": fc_value,
             }
 
             experimentConditions.append(condition)
@@ -161,6 +170,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
-    main.run_tutorial()
+    #main.run_tutorial()
     main.run_main(main_output)
 
