@@ -505,7 +505,7 @@ class Experiment:
     #     self.myWin.end()
     
     def getThresholdFromBase(self, file_path):
-        threshVal = 0.75
+        threshVal = 0.5
         expectedMin = 0.0
 
         thisDat = pd.read_csv(file_path)

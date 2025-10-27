@@ -18,6 +18,7 @@ import statsmodels.formula.api as smf
 import statsmodels.graphics.api as smg
 from pathlib import Path
 import os
+
 # dynamic import
 this_file = Path(__file__).resolve()
 utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 then into utils
@@ -65,6 +66,14 @@ for participant_id, df in participant_dfs.items():
 for participant_id, fit_result in fit_results.items():
     print(f"Participant: {participant_id}, coefficients:")
     print(fit_result.summary())
+
+
+#%%
+df = participant_dfs[310]
+df.head()
+
+df['flanker_multiplier'].dtype()
+
 
 #%%
 # for each id, create a summary plot fitting raw data using weighted Weibull function

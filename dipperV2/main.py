@@ -114,7 +114,6 @@ if baseline_threshold < 0 or baseline_threshold > 0.03:
 # get conditions:
 experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
-contrast_sequence = utils.contrast_steps_log(baseline_threshold, max_val=1.0, n_steps=7)
 
 for stim_key in stim_keys:
     if stim_key == "target":
@@ -140,8 +139,8 @@ for stim_key in stim_keys:
             label = cond['label']
             factor = cond['FC_factor']
             
-            if factor > 32:
-                fc_value = baseline_threshold * 32 + ((1.0 - baseline_threshold*32) / 2)
+            if factor > 10:
+                fc_value = 0.8
                 print(f"baseline: {baseline_threshold}, fc_value: {fc_value}")
             else:
                 fc_value = baseline_threshold*factor
