@@ -98,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-baseline_threshold = 0.02
+baseline_threshold = 0.04
         
 #%% Load in main setting and run
 if is_test == 1:

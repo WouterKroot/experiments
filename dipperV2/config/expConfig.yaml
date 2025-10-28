@@ -14,22 +14,22 @@ fixed_params:
   n_down: 1
   min_val: 0.001
   max_val: 0.1
-  step_size: [2.5, 1.5, 1.0]
+  step_size: [2.5, 2.0, 1.5, 1.0, 0.8]
   step_type: 'log'
   reversals: 12 #1
   nullOdds: 0.2
 
 exp_blocks:
   baseline:
-    test_trials:  10
-    n_trials: 50
+    test_trials:  1
+    n_trials: 70
     n_blocks: 1
-    start_val: 0.015
+    start_val: 0.03
   
   main:
-    test_trials: 2
+    test_trials: 1
     n_trials: 70 #50 # total amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
-    n_blocks: 12 #10 #7
+    n_blocks: 4 #10 #7
     flanker_conditions:
       - label: "100"
         FC_factor: 1

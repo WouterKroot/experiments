@@ -283,7 +283,7 @@ class Experiment:
         middle_index = len(breaks) // 2
         middle_trial = breaks[middle_index] if len(breaks) > 0 else -1
 
-        print(f"Total trials: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
+        print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
 
         trialClock = core.Clock()
         thisTrial = 0         # counts all displayed trials (including nulls)
@@ -292,23 +292,28 @@ class Experiment:
         self.myWin.countdown()
 
         # Loop until all staircase trials are completed
-        while stairs.totalTrials < totalStaircaseTrials: 
+        while stairTrialCount < totalStaircaseTrials: 
             self.myWin.checkQuit()
             print('===============')
-            print(f"stair case counter: {stairs.totalTrials},\n total staircase trials (no null): {totalStaircaseTrials}, total for breaks: {totalTrials}")
-
-            # --- Draw next staircase trial ---
-            stairs.next()  
-            currentStair = stairs.currentStaircase
-            condition = currentStair.condition
-            thisLabel = condition['label']
+            #print(f"Total trials with null: {stairs.totalTrials},\n total staircase trials (no null): {totalStaircaseTrials}, total for breaks: {totalTrials}")
+            
+            print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
+            #print(f"Total trials from the staircase: {stairs.totalTrials}")
+            print(f"Total trials no null, totalStaircaseTrials: {totalStaircaseTrials}")
+            print(f"Trial: {thisTrial}, staircase count: {stairTrialCount}")
 
             # --- Random null trial ---
             isNull = np.random.random() <= self.nullOdds
-            targetIntensity = currentStair.intensity if not isNull else 0
             if isNull:
                 print("Null trial")
                 thisLabel += '_null'
+                targetIntensity = 0
+            else:
+                stairs.next()  
+                currentStair = stairs.currentStaircase
+                condition = currentStair.condition
+                thisLabel = condition['label']
+                targetIntensity = currentStair.intensity
 
             # --- Handle breaks ---
             if thisTrial in breaks:
@@ -383,7 +388,7 @@ class Experiment:
             if self.eyeTracker.doTracking:
                 self.eyeTracker.tracker.stopRecording()
 
-            print(f"Trial {thisTrial} (staircase count {stairTrialCount})")
+            
 
             # --- Save staircase periodically ---
             os.makedirs(self.path, exist_ok=True)
