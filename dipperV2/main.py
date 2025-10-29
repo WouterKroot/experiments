@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = True 
-tracker = False 
+is_test = False 
+tracker = True 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -88,7 +88,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = False
+redo = True
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
     file_path = baseline.openDataFile()
@@ -98,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-baseline_threshold = 0.04
+#baseline_threshold = 0.04
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -169,6 +169,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
     main_output = main.openDataFile()
-    #main.run_tutorial()
+    main.run_tutorial()
     main.run_main(main_output)
 

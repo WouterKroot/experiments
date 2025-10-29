@@ -29,7 +29,7 @@ exp_blocks:
   main:
     test_trials: 1
     n_trials: 70 #50 # total amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
-    n_blocks: 4 #10 #7
+    n_blocks: 12 #10 #7
     flanker_conditions:
       - label: "100"
         FC_factor: 1
