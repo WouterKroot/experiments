@@ -7,6 +7,7 @@
 # show that facilitation and inhibition effects can be modelled as multiplicative gain modulation multiplied by input contrast
 
 #%%
+from psychopy import data
 from pathlib import Path
 import sys
 import scripts.functions 
@@ -17,6 +18,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import statsmodels.graphics.api as smg
 from pathlib import Path
+import pylab
 import os
 
 # dynamic import
@@ -50,33 +52,105 @@ participant_dfs = {participant_id: main_df[main_df['id'] == participant_id] for 
 
 #%% Clean data from null trials and check n false positives
 fit_results = {}
+
+threshVal = 0.8
+expectedMin = 0.0
+
 for participant_id, df in participant_dfs.items():
     cleaned_df, num_false_positives = scripts.functions.clean_df(df)
-    participant_dfs[participant_id]['num_false_positives'] = num_false_positives
+    #participant_dfs[participant_id]['num_false_positives'] = num_false_positives
     participant_dfs[participant_id] = cleaned_df
 
-    fit_result = smf.glm(
+    interaction_result = smf.glm(
         formula='response ~ TC * FC * C(condition, Treatment(reference="target"))',
         data=cleaned_df,
         family=sm.families.Binomial(link=sm.families.links.CLogLog()),
-        var_weights=cleaned_df['weight']
-        ).fit()
-    fit_results[participant_id] = fit_result
+        # var_weights=cleaned_df['weight']
+    ).fit()
 
+    main_result = smf.glm(
+        formula='response ~ TC',
+        data=cleaned_df,
+        family=sm.families.Binomial(link=sm.families.links.CLogLog()),
+        # var_weights=cleaned_df['weight']
+    ).fit()
+
+    fit_results[participant_id] = [interaction_result, main_result]
+    
+    # manual fitting using psychopy and GLM for main conditions 
+    for label in cleaned_df['condition'].unique():
+        df_label = cleaned_df[cleaned_df['condition'] == label]  # filter rows
+        intensities = df_label['TC'].values
+        responses = df_label['response'].values
+    
+        combinedInten, combinedResp, combinedN = data.functionFromStaircase(
+        intensities, responses, bins=10)
+
+        fit_psycho = data.FitLogistic(
+        combinedInten, combinedResp,
+        expectedMin=expectedMin,
+        sems=1.0 / np.array(combinedN))
+        
+        smoothInt = np.linspace(intensities.min(), intensities.max(), 500)
+        smoothResp_psycho = fit_psycho.eval(smoothInt)
+        thresh_psycho = fit_psycho.inverse(threshVal)
+        
+        glm_pred = main_result.predict(pd.DataFrame({"TC": smoothInt}))
+        
+        pylab.figure(figsize=(6,4))
+        pylab.plot(smoothInt, smoothResp_psycho, label='PsychoPy Logistic Fit', lw=2)
+        pylab.plot(smoothInt, glm_pred, label='GLM CLogLog Fit', lw=2, linestyle='--')
+        pylab.plot(combinedInten, combinedResp, 'o', label='Binned data')
+        pylab.axvline(thresh_psycho, color='k', linestyle=':', label=f'Logistic threshold={thresh_psycho:.3f}')
+        # pylab.ylim([0,1])
+        pylab.xlabel('Stimulus Intensity (TC)')
+        pylab.ylabel('P(Response=1)')
+        pylab.legend()
+        pylab.title(f'{label}: Psychometric Function Comparison')
+        pylab.show()
+    
+    # manual fitting using psychopy and GLM for individual flanker conditions
+    for label in cleaned_df['label'].unique():
+        df_label = cleaned_df[cleaned_df['label'] == label]  # filter rows
+        intensities = df_label['TC'].values
+        responses = df_label['response'].values
+    
+        combinedInten, combinedResp, combinedN = data.functionFromStaircase(
+        intensities, responses, bins=10)
+
+        fit_psycho = data.FitLogistic(
+        combinedInten, combinedResp,
+        expectedMin=expectedMin,
+        sems=1.0 / np.array(combinedN))
+        
+        smoothInt = np.linspace(intensities.min(), intensities.max(), 500)
+        smoothResp_psycho = fit_psycho.eval(smoothInt)
+        thresh_psycho = fit_psycho.inverse(threshVal)
+        
+        glm_pred = main_result.predict(pd.DataFrame({"TC": smoothInt}))
+        
+        pylab.figure(figsize=(6,4))
+        pylab.plot(smoothInt, smoothResp_psycho, label='PsychoPy Logistic Fit', lw=2)
+        pylab.plot(smoothInt, glm_pred, label='GLM CLogLog Fit', lw=2, linestyle='--')
+        pylab.plot(combinedInten, combinedResp, 'o', label='Binned data')
+        pylab.axvline(thresh_psycho, color='k', linestyle=':', label=f'Logistic threshold={thresh_psycho:.3f}')
+        # pylab.ylim([0,1])
+        pylab.xlabel('Stimulus Intensity (TC)')
+        pylab.ylabel('P(Response=1)')
+        pylab.legend()
+        pylab.title(f'{label}: Psychometric Function Comparison')
+        pylab.show()
+    
+
+    
+
+
+#%%
 for participant_id, fit_result in fit_results.items():
     print(f"Participant: {participant_id}, coefficients:")
-    print(fit_result.summary())
+    print(fit_result[0].summary())
+    print(fit_result[1].summary())
+    
+    
 
 
-#%%
-df = participant_dfs[310]
-df.head()
-
-df['flanker_multiplier'].dtype()
-
-
-#%%
-# for each id, create a summary plot fitting raw data using weighted Weibull function
-# extract 0.75 threshold contrast from fit line per condition (dipper function)
-# store results in a dataframe
-# plot group average with standard error shading
