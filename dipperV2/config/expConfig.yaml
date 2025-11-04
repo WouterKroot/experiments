@@ -75,11 +75,11 @@ stimuli:
       angle: 90
       length: 40
 
-  single_flanker_side:
+  single_flanker_side_orth:
     - object: line
       type: flanker
       pos: [-50, 0]
-      angle: 90
+      angle: 0
       length: 40
     - object: line
       type: target
@@ -89,7 +89,7 @@ stimuli:
     - object: line
       type: flanker
       pos: [50, 0]
-      angle: 90
+      angle: 0
       length: 40
 
   triple_flanker:

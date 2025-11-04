@@ -274,7 +274,7 @@ class Experiment:
                   "Press RIGHT to continue to the actual experiment.")
         core.wait(3)
         event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
-    
+        
     def run_main(self, dataFile): 
         breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
         stairs = self.stairs
@@ -301,11 +301,14 @@ class Experiment:
             #print(f"Total trials from the staircase: {stairs.totalTrials}")
             print(f"Total trials no null, totalStaircaseTrials: {totalStaircaseTrials}")
             print(f"Trial: {thisTrial}, staircase count: {stairTrialCount}")
-
+            
             # --- Random null trial ---
             isNull = np.random.random() <= self.nullOdds
             if isNull:
                 print("Null trial")
+                currentStair = stairs.currentStaircase
+                condition = currentStair.condition
+                thisLabel = condition['label']
                 thisLabel += '_null'
                 targetIntensity = 0
             else:
@@ -392,15 +395,10 @@ class Experiment:
             if self.eyeTracker.doTracking:
                 self.eyeTracker.tracker.stopRecording()
 
-            
-
-            
-
         # --- End of experiment ---
         self.myWin.checkQuit()
         self.myWin.end()
         self.eyeTracker.closeTracker()
-        
     
     def getThresholdFromBase(self, file_path):
         threshVal = 0.5
