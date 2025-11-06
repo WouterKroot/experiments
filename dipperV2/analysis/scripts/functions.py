@@ -47,7 +47,8 @@ def clean_df(df):
     # Remove _null trials entirely
     null_trials = df['label'].str.endswith('_null')
     cleaned_df = df[~null_trials].copy()
-    
+   
+    cleaned_df = cleaned_df[cleaned_df['TC'] <= 0.6] 
     # Extract condition (everything before last "_")
     cleaned_df['condition'] = cleaned_df['label'].str.rsplit('_', n=1).str[0]
     
