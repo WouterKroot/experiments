@@ -10,7 +10,7 @@ from typing import Literal
 class Experiment:
     def __init__(self, win,
                  subject_id, nTrials, nBlocks, eyeTracker,
-                 expConfig, path, nullOdds, myConds):
+                 expConfig, path, nullOdds, myConds, baseline_threshold):
         self.myWin = win
         self.myConds = myConds
         self.id = subject_id
@@ -25,6 +25,7 @@ class Experiment:
                                              method='random',
                                              nTrials=self.nTrials,
                                              conditions=self.myConds, originPath=self.path)
+        self.baseline_threshold = baseline_threshold
 
     def getBreaks(self):
         totalTrials = int(len(self.myConds) * self.nTrials * (1 + self.nullOdds))
@@ -316,6 +317,23 @@ class Experiment:
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
                 thisLabel = condition['label']
+                
+                
+                # 2 intervals maken met 20 punten en dan random
+                baseline = self.baseline_threshold
+                targetIntensity = np.random.normal(baseline)
+                
+                # min_val = baseline / 10
+                # max_val = baseline * 10
+
+                # # Randomly pick low or high interval
+                # if np.random.rand() < 0.5:
+                #     # Sample in lower interval
+                #     targetIntensity = np.random.uniform(min_val, baseline * 1.2)
+                # else:
+                #     # Sample in upper interval
+                #     targetIntensity = np.random.uniform(baseline * 0.8, max_val)
+                                
                 targetIntensity = currentStair.intensity
 
             # --- Handle breaks ---
@@ -387,6 +405,22 @@ class Experiment:
             # --- Add response only if not null ---
             if not isNull:
                 stairs.addResponse(thisResp)
+                inner = stairs.currentStaircase
+
+                # Safely extract reversal info
+                rev_intens = getattr(inner, "reversalIntensities", [])
+                rev_points = getattr(inner, "reversalPoints", [])
+
+                # Print staircase status
+                print(
+                    f"[{inner.name}] "
+                    f"trial={inner.thisTrialN}, "
+                    f"intensity={inner.intensity:.4f}, "
+                    f"correct={thisResp}, "
+                    f"nReversals={len(rev_intens)}, "
+                    f"reversalIntensities={rev_intens}, "
+                    f"stepSize={inner.stepSizeCurrent}")
+                
                 stairTrialCount += 1
 
             # Increment total trial counter for breaks / logging
@@ -399,6 +433,10 @@ class Experiment:
         self.myWin.checkQuit()
         self.myWin.end()
         self.eyeTracker.closeTracker()
+        
+        os.makedirs(self.path, exist_ok=True)
+        psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
+        stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
     def getThresholdFromBase(self, file_path):
         threshVal = 0.5

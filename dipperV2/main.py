@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = False 
-tracker = True 
+is_test = True 
+tracker = False 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -78,10 +78,10 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.03,      # a bit above threshold to allow both up/down movement
-     'maxVal': 0.04,         # upper bound for the staircase
+     'startVal': 0.1,      # a bit above threshold to allow both up/down movement
+     'maxVal': 0.1,         # upper bound for the staircase
      'minVal': 0.0015,      # lower bound
-     'stepSizes': [5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
+     'stepSizes': [1.0, 0.5],#[5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
      'stepType': 'log',
      'nReversals': 20,      # enough for reliable slope + threshold
      'nUp': 1,
@@ -90,7 +90,7 @@ baselineCondition = [
 
 redo = True
 while redo:
-    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition)
+    baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
     file_path = baseline.openDataFile()
     baseline.run_baseline()  # This appends to the same file
     baseline_threshold = baseline.getThresholdFromBase(file_path)
@@ -98,7 +98,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-#baseline_threshold = 0.04
+baseline_threshold = 0.02
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -121,7 +121,7 @@ for stim_key in stim_keys:
         condition = {
             "label": f"{stim_key}",
             "stim_key": stim_key,
-            "startVal": baseline_threshold,
+            "startVal": 0.1,
             "maxVal": expConfig['fixed_params']["max_val"],
             "minVal": expConfig['fixed_params']["min_val"],
             "stepSizes": expConfig['fixed_params']["step_size"],
@@ -150,7 +150,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": baseline_threshold,
+                "startVal": 0.1,
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
                 "stepSizes": expConfig['fixed_params']["step_size"],
@@ -162,13 +162,18 @@ for stim_key in stim_keys:
             }
 
             experimentConditions.append(condition)
-            
+
 print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentConditions}")
+
+
+
 #%%
 # Run the main experiment
 if __name__ == "__main__":
-    main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions)
-    main_output = main.openDataFile()
-    main.run_tutorial()
-    main.run_main(main_output)
+    main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions, baseline_threshold)
+    #main_output = main.openDataFile()
+    #main.run_tutorial()
+    #main.run_main(main_output)
 
+#%%
+main.stairs
