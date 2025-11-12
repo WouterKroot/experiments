@@ -42,13 +42,14 @@ def clean_df(df):
     
     # Identify false positives (response=1 on _null trials)
     false_positives = df['label'].str.endswith('_null') & (df['response'] == 1)
-    num_false_positives = false_positives.sum()
+    sum_false_positive = false_positives.sum()
+    false_positive_ratio = sum_false_positive / len(df['response'])
     
     # Remove _null trials entirely
     null_trials = df['label'].str.endswith('_null')
     cleaned_df = df[~null_trials].copy()
    
-    cleaned_df = cleaned_df[cleaned_df['TC'] <= 0.6] 
+    cleaned_df = cleaned_df[cleaned_df['TC'] <= 0.2] 
     # Extract condition (everything before last "_")
     cleaned_df['condition'] = cleaned_df['label'].str.rsplit('_', n=1).str[0]
     
@@ -64,4 +65,4 @@ def clean_df(df):
         cleaned_df.loc[mask, 'label'].str.rsplit('_', n=1).str[1].astype(int)
     )
     #cleaned_df['flanker_multiplier'] = cleaned_df['flanker_multiplier']/100.0  # convert to proportion (not necessary cause it's already wrt baseline)
-    return cleaned_df, num_false_positives
+    return cleaned_df, sum_false_positive, false_positive_ratio

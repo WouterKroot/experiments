@@ -1,11 +1,7 @@
 # ToDo:
 # per id create a summary plot fitting raw data using weighted Weibull function
 # extract 0.75 threshold contrast from fit line per condition (dipper function)
-
-# take the mean of each condition across ids and plot group average with standard error shading
-
 # show that facilitation and inhibition effects can be modelled as multiplicative gain modulation multiplied by input contrast
-
 #%%
 from psychopy import data
 from pathlib import Path
@@ -21,27 +17,32 @@ from pathlib import Path
 import pylab
 import os
 from scipy.optimize import curve_fit
-
 # dynamic import
 this_file = Path(__file__).resolve()
 utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 then into utils
 sys.path.append(str(utils_path))
 import utils
 
-#%% Dynamic paths for data loading
-output_path = this_file.parent.parent.parent.parent / 'Data'
+test = True
+#%%
+#Dynamic paths for data loading
+#output_path = this_file.parent.parent.parent.parent / 'Data'
+output_path = this_file.parent.parent / 'Output'
 
-exp_path = output_path / 'Exp'
-#baseline_path = exp_path / 'Baseline'
-#main_path = output_path / 'analysis'
+if test == True:
+    exp_path = output_path / 'Test'
+else:
+    exp_path = output_path / 'Exp'
+    
+baseline_path = exp_path / 'Baseline'
 main_path = exp_path / 'Main'
+eyelink_path = output_path / 'Eyelink'
+#output file
 summary_path = exp_path / 'Summary'
-#eyelink_path = output_path / 'Eyelink'
 
 #%%
-#baseline_df = utils.load_data(baseline_path)
+baseline_df = utils.load_data(baseline_path)
 main_df = utils.load_data(main_path)
-
 #%% 
 ids = main_df['id'].unique()
 print(f"Found {len(ids)} participant(s): {ids}")
@@ -50,21 +51,103 @@ labels = main_df['label'].unique()
 print(f"Found {len(labels)}") # conditions: {labels}")
 
 #%% seperate dataframes per participant
-participant_dfs = {participant_id: main_df[main_df['id'] == participant_id] for participant_id in ids}
 
+participant_dfs = {}
+for pid in ids:
+    # Slice baseline and main data
+    base = baseline_df[baseline_df['id'] == pid].copy()
+    main = main_df[main_df['id'] == pid].copy()
+
+    # Add session labels for clarity
+    base['session'] = 'baseline'
+    main['session'] = 'main'
+
+    # Combine both
+    combined = pd.concat([base, main], ignore_index=True)
+
+    # Store in dict
+    participant_dfs[pid] = {
+        'baseline': base,
+        'main': main,
+        'combined': combined}
+#%%
+# Investigate the raw number of responses and calculate the proportion
+def response_distribution_all_labels(df, n_bins=30):
+    """
+    Shows the distribution of response=1 vs response=0 per binned intensity (TC) for every unique label.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain columns 'label', 'TC', and 'response'.
+    n_bins : int
+        Number of bins to divide the TC range into.
+    """
+    unique_labels = df['label'].unique()
+    
+    # Define bins across TC range
+    bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
+    df = df.copy()
+    df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
+
+    for label_name in unique_labels:
+        print(f"\nLabel: {label_name}")
+        
+        # Filter for the label
+        label_df = df[df['label'] == label_name]
+        
+        # Group by binned TC and response, count occurrences
+        distribution = (
+            label_df.groupby(['TC_bin', 'response'])
+            .size()
+            .reset_index(name='count')
+        )
+        
+        # Pivot for easier reading
+        distribution_pivot = (
+            distribution.pivot(index='TC_bin', columns='response', values='count')
+            .fillna(0)
+            .rename(columns={0: 'Response_0', 1: 'Response_1'})
+            .astype(int)
+        )
+        
+        print(distribution_pivot)
+for participant_id, dfs in participant_dfs.items():
+    df = dfs['combined'].copy()
+    cleaned_df, sum_false_positive, false_positive_ratio = scripts.functions.clean_df(df)
+    #cleaned_df = cleaned_df[cleaned_df['TC'] < 0.1]
+    response_distribution_all_labels(cleaned_df)
+    
+# Plot the adjusted proportions per bin
+
+# Fit the glm on the adjust proportion per bin, show differences Weilbull and log
+
+# Take out the 0.75 point
+
+# Aggregate over participants
+
+# Plot per condition, threshold per flanker contrast
+
+ 
+
+
+
+#%% old code 
 #%% Clean data from null trials and check n false positives
 fit_results = {}
 summary = []
 summary_glm = []
 
-threshVal = 0.8
+threshVal = 0.7
 expectedMin = 0.0
 
-for participant_id, df in participant_dfs.items():
-    cleaned_df, num_false_positives = scripts.functions.clean_df(df)
+for participant_id, dfs in participant_dfs.items():
+    df = dfs['combined'].copy()
+    
+    cleaned_df, sum_false_positive, false_positive_ratio = scripts.functions.clean_df(df)
     cleaned_df['label'] = cleaned_df['label'].astype(str).str.replace(r'^target.*', 'target', regex=True)
     #participant_dfs[participant_id]['num_false_positives'] = num_false_positives
-    participant_dfs[participant_id] = cleaned_df
+    # participant_dfs[participant_id] = cleaned_df
 
     interaction_result = smf.glm(
         formula='response ~ TC * FC * C(condition, Treatment(reference="target"))',
@@ -85,8 +168,8 @@ for participant_id, df in participant_dfs.items():
     # manual fitting using psychopy and GLM for main conditions 
     for label in cleaned_df['condition'].unique():
         df_label = cleaned_df[cleaned_df['condition'] == label]  # filter rows
-        intensities = df_label[df_label['TC']<= 0.06]['TC'].values
-        responses = df_label[df_label['TC'] <= 0.06]['response'].values
+        intensities = df_label['TC'].values
+        responses = df_label['response'].values
     
         #combinedInten, combinedResp, combinedN = data.functionFromStaircase(
         #intensities, responses, bins=10)
@@ -101,7 +184,7 @@ for participant_id, df in participant_dfs.items():
         
         cond_result = smf.glm(
             formula='response ~ TC',
-            data=df_label[df_label['TC']<= 0.06],
+            data=df_label,
             family=sm.families.Binomial(link=sm.families.links.CLogLog()),
             # var_weights=cleaned_df['weight']
             ).fit()
@@ -125,8 +208,12 @@ for participant_id, df in participant_dfs.items():
         intensities = df_label['TC'].values
         responses = df_label['response'].values
 
-        intensities_fit = df_label[df_label["TC"] <= 0.06]['TC'].values
-        responses_fit = df_label[df_label["TC"] <= 0.06]['response'].values
+        # intensities_fit = df_label[df_label["TC"] <= 0.06]['TC'].values
+        # responses_fit = df_label[df_label["TC"] <= 0.06]['response'].values
+        
+        intensities_fit = df_label["TC"].values
+        responses_fit = df_label['response'].values
+        
         #print(intensities_fit)
         #print(responses_fit)
 
@@ -163,7 +250,7 @@ for participant_id, df in participant_dfs.items():
         # -- glm CLogLog --
         fit_glm = smf.glm(
             formula='response ~ TC',
-            data=df_label[df_label['TC'] <= 0.06],
+            data=df_label,
             family=sm.families.Binomial(link=sm.families.links.CLogLog()),
             # var_weights=cleaned_df['weight']
             ).fit()
@@ -225,90 +312,133 @@ for participant_id, df in participant_dfs.items():
     plt.legend()
 
 #%%
-# -- average summary plot over participants -- 
+# # -- average summary plot over participants -- 
 
-# - Psychopy version -
-summary_df = utils.load_data(summary_path / 'psychopy')
+# # - Psychopy version -
+# summary_df = utils.load_data(summary_path / 'psychopy')
 
-mean = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].mean()
-std_error = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].sem()
+# mean = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].mean()
+# std_error = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].sem()
 
-plt.figure()
-plt.title(f'Summary glm')
-plt.xlabel('Flanker contrast %Baseline')
-plt.ylabel('Target contrast')
+# plt.figure()
+# plt.title(f'Summary glm')
+# plt.xlabel('Flanker contrast %Baseline')
+# plt.ylabel('Target contrast')
 
-def fit_func(x, A,B,D,b,d):
-    x = np.asarray(x, dtype=float)
-    return A + B*x*np.exp(-b*x) - D*np.exp(-d*x) 
+# def fit_func(x, A,B,D,b,d):
+#     x = np.asarray(x, dtype=float)
+#     return A + B*x*np.exp(-b*x) - D*np.exp(-d*x) 
 
-lower_bounds = [-np.inf, 0, 0, 0, 0]
-upper_bounds = [np.inf, np.inf, np.inf, np.inf, np.inf]
-x_fit = np.linspace(min(mean.index), max(mean.index), 200)
+# lower_bounds = [-np.inf, 0, 0, 0, 0]
+# upper_bounds = [np.inf, np.inf, np.inf, np.inf, np.inf]
+# x_fit = np.linspace(min(mean.index), max(mean.index), 200)
 
-for cond in mean['condition'].unique():
-    cond_df = mean[mean['condition']==cond]
-    data = plt.errorbar(cond_df['flanker'], cond_df['value'], yerr= std_error[std_error['condition']==cond]['value'], linestyle = '', marker ='o')
-    y = cond_df['value'].to_list()
-    popt, _ = curve_fit(fit_func, cond_df['flanker'], y, p0 = [min(y), (max(y)-min(y))/2, (max(y)-min(y))/2, 0.01, 0.01],maxfev =5000, bounds=(lower_bounds,upper_bounds))
-    plt.plot(x_fit, fit_func(x_fit, *popt), color = data[0].get_color(), label = f'fit: {cond}') 
+# for cond in mean['condition'].unique():
+#     cond_df = mean[mean['condition']==cond]
+#     data = plt.errorbar(cond_df['flanker'], cond_df['value'], yerr= std_error[std_error['condition']==cond]['value'], linestyle = '', marker ='o')
+#     y = cond_df['value'].to_list()
+#     popt, _ = curve_fit(fit_func, cond_df['flanker'], y, p0 = [min(y), (max(y)-min(y))/2, (max(y)-min(y))/2, 0.01, 0.01],maxfev =5000, bounds=(lower_bounds,upper_bounds))
+#     plt.plot(x_fit, fit_func(x_fit, *popt), color = data[0].get_color(), label = f'fit: {cond}') 
 
-plt.legend()
+# plt.legend()
 
-# - GLM version -
-summary_df = utils.load_data(summary_path / 'glm')
+# # - GLM version -
+# summary_df = utils.load_data(summary_path / 'glm')
 
-mean = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].mean()
-std_error = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].sem()
+# mean = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].mean()
+# std_error = summary_df.groupby(['condition', 'flanker'], as_index=False)['value'].sem()
 
-plt.figure()
-plt.title(f'Summary glm')
-plt.xlabel('Flanker contrast %Baseline')
-plt.ylabel('Target contrast')
+# plt.figure()
+# plt.title(f'Summary glm')
+# plt.xlabel('Flanker contrast %Baseline')
+# plt.ylabel('Target contrast')
 
-def fit_func(x, A,B,D,b,d):
-    x = np.asarray(x, dtype=float)
-    return A + B*x*np.exp(-b*x) - D*np.exp(-d*x) 
+# def fit_func(x, A,B,D,b,d):
+#     x = np.asarray(x, dtype=float)
+#     return A + B*x*np.exp(-b*x) - D*np.exp(-d*x) 
 
-lower_bounds = [-np.inf, 0, 0, 0, 0]
-upper_bounds = [np.inf, np.inf, np.inf, np.inf, np.inf]
-x_fit = np.linspace(min(mean.index), max(mean.index), 200)
+# lower_bounds = [-np.inf, 0, 0, 0, 0]
+# upper_bounds = [np.inf, np.inf, np.inf, np.inf, np.inf]
+# x_fit = np.linspace(min(mean.index), max(mean.index), 200)
 
-for cond in mean['condition'].unique():
-    cond_df = mean[mean['condition']==cond]
-    data = plt.errorbar(cond_df['flanker'], cond_df['value'], yerr= std_error[std_error['condition']==cond]['value'], linestyle = '', marker ='o')
-    y = cond_df['value'].to_list()
-    popt, _ = curve_fit(fit_func, cond_df['flanker'], y, p0 = [min(y), (max(y)-min(y))/2, (max(y)-min(y))/2, 0.01, 0.01],maxfev =5000, bounds=(lower_bounds,upper_bounds))
-    plt.plot(x_fit, fit_func(x_fit, *popt), color = data[0].get_color(), label = f'fit: {cond}') 
-plt.legend() 
+# for cond in mean['condition'].unique():
+#     cond_df = mean[mean['condition']==cond]
+#     data = plt.errorbar(cond_df['flanker'], cond_df['value'], yerr= std_error[std_error['condition']==cond]['value'], linestyle = '', marker ='o')
+#     y = cond_df['value'].to_list()
+#     popt, _ = curve_fit(fit_func, cond_df['flanker'], y, p0 = [min(y), (max(y)-min(y))/2, (max(y)-min(y))/2, 0.01, 0.01],maxfev =5000, bounds=(lower_bounds,upper_bounds))
+#     plt.plot(x_fit, fit_func(x_fit, *popt), color = data[0].get_color(), label = f'fit: {cond}') 
+# plt.legend() 
     
 
 #%%
-def response_distribution_all_labels(df):
-    """
-    Shows the distribution of response=1 vs response=0 per intensity (TC) for every unique label.
+# def response_distribution_all_labels(df):
+#     """
+#     Shows the distribution of response=1 vs response=0 per intensity (TC) for every unique label.
     
-    Parameters:
-        df : pandas.DataFrame
-            The cleaned dataframe with columns 'label', 'TC', and 'response'.
+#     Parameters:
+#         df : pandas.DataFrame
+#             The cleaned dataframe with columns 'label', 'TC', and 'response'.
+#     """
+#     unique_labels = df['label'].unique()
+    
+#     for label_name in unique_labels:
+#         print(f"\nLabel: {label_name}")
+#         # Filter for the label
+#         label_df = df[df['label'] == label_name]
+        
+#         # Group by intensity (TC) and response, count occurrences
+#         distribution = label_df.groupby(['TC', 'response']).size().reset_index(name='count')
+        
+#         # Pivot for easier reading
+#         distribution_pivot = distribution.pivot(index='TC', columns='response', values='count').fillna(0)
+#         distribution_pivot.columns = ['Response_0', 'Response_1']
+#         distribution_pivot = distribution_pivot.astype(int)
+        
+#         print(distribution_pivot)
+        
+import pandas as pd
+import numpy as np
+
+def response_distribution_all_labels(df, n_bins=20):
+    """
+    Shows the distribution of response=1 vs response=0 per binned intensity (TC) for every unique label.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain columns 'label', 'TC', and 'response'.
+    n_bins : int
+        Number of bins to divide the TC range into.
     """
     unique_labels = df['label'].unique()
     
+    # Define bins across TC range
+    bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
+    df = df.copy()
+    df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
+
     for label_name in unique_labels:
         print(f"\nLabel: {label_name}")
+        
         # Filter for the label
         label_df = df[df['label'] == label_name]
         
-        # Group by intensity (TC) and response, count occurrences
-        distribution = label_df.groupby(['TC', 'response']).size().reset_index(name='count')
+        # Group by binned TC and response, count occurrences
+        distribution = (
+            label_df.groupby(['TC_bin', 'response'])
+            .size()
+            .reset_index(name='count')
+        )
         
         # Pivot for easier reading
-        distribution_pivot = distribution.pivot(index='TC', columns='response', values='count').fillna(0)
-        distribution_pivot.columns = ['Response_0', 'Response_1']
-        distribution_pivot = distribution_pivot.astype(int)
+        distribution_pivot = (
+            distribution.pivot(index='TC_bin', columns='response', values='count')
+            .fillna(0)
+            .rename(columns={0: 'Response_0', 1: 'Response_1'})
+            .astype(int)
+        )
         
         print(distribution_pivot)
-        
-
 # Example usage:
 response_distribution_all_labels(cleaned_df)
+# %%

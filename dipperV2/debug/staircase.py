@@ -21,7 +21,7 @@ from src.experiment import Experiment
 
 #%%
 #baseline_df = utils.load_data(baseline_path)
-main_path = '/Users/wouter/Documents/phd/projects/psychophysics/experiments/dipperV2/Output/Test/Main/965_main/965_main.csv'
+main_path = '/Users/wouter/Documents/phd/projects/psychophysics/experiments/dipperV2/Output/Test/Main/990_main/990_main.csv'
 main_df = pd.read_csv(main_path)
 main_df, _ = functions.clean_df(main_df)
 #%% 
@@ -108,7 +108,7 @@ print(results)
 #%%
 import pandas as pd
 import pylab
-file_path = '/Users/wouter/Documents/phd/projects/psychophysics/experiments/dipperV2/Output/Test/Baseline/970_baseline/970_baseline.csv'
+file_path = '/Users/wouter/Documents/phd/projects/psychophysics/experiments/dipperV2/Output/Test/Baseline/990_baseline/990_baseline.csv'
 main_df = pd.read_csv(file_path)
 df, _ = functions.clean_df(main_df)
 df = df[df['TC'] < 0.08]

@@ -317,25 +317,10 @@ class Experiment:
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
                 thisLabel = condition['label']
-                
-                
-                # 2 intervals maken met 20 punten en dan random
-                baseline = self.baseline_threshold
-                targetIntensity = np.random.normal(baseline)
-                
-                # min_val = baseline / 10
-                # max_val = baseline * 10
-
-                # # Randomly pick low or high interval
-                # if np.random.rand() < 0.5:
-                #     # Sample in lower interval
-                #     targetIntensity = np.random.uniform(min_val, baseline * 1.2)
-                # else:
-                #     # Sample in upper interval
-                #     targetIntensity = np.random.uniform(baseline * 0.8, max_val)
-                                
                 targetIntensity = currentStair.intensity
 
+            print(f'--Label: {thisLabel}, target intensity: {targetIntensity}--')
+            
             # --- Handle breaks ---
             if thisTrial in breaks:
                 b_idx = np.where(breaks == thisTrial)[0][0]

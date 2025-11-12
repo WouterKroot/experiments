@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = True 
-tracker = False 
+is_test = False 
+tracker = True 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -76,13 +76,15 @@ else:
 nBlocks = expConfig["exp_blocks"]["baseline"]["n_blocks"]
 nullOdds = expConfig["fixed_params"]["nullOdds"]
 
+stepsizes = expConfig["fixed_params"]["step_sizes"]
+
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.1,      # a bit above threshold to allow both up/down movement
-     'maxVal': 0.1,         # upper bound for the staircase
-     'minVal': 0.0015,      # lower bound
-     'stepSizes': [1.0, 0.5],#[5.0, 4.5, 4.0, 3.0, 2.0, 1.0, 0.5, 0.2, 0.1],  # big → small log steps
-     'stepType': 'log',
+     'startVal': 0.2,      # a bit above threshold to allow both up/down movement
+     'maxVal': 1.0,         # upper bound for the staircase
+     'minVal': 0.001,      # lower bound
+     'stepSizes': stepsizes, # big → small log steps but psychophy implementation is linear
+     'stepType': 'lin',
      'nReversals': 20,      # enough for reliable slope + threshold
      'nUp': 1,
      'nDown': 1}            # targets ~50%
@@ -98,7 +100,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-baseline_threshold = 0.02
+# baseline_threshold = 0.02
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -108,8 +110,8 @@ else:
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-if baseline_threshold < 0 or baseline_threshold > 0.03:
-        baseline_threshold = 0.02 #0.01
+if baseline_threshold < 0 or baseline_threshold > 0.04:
+        baseline_threshold = 0.03 #0.01
         
 # get conditions:
 experimentConditions = []
@@ -118,20 +120,21 @@ stim_keys = list(myWin.stimuli.keys())
 for stim_key in stim_keys:
     if stim_key == "target":
         # target-only condition (no flanker)
-        condition = {
-            "label": f"{stim_key}",
-            "stim_key": stim_key,
-            "startVal": 0.1,
-            "maxVal": expConfig['fixed_params']["max_val"],
-            "minVal": expConfig['fixed_params']["min_val"],
-            "stepSizes": expConfig['fixed_params']["step_size"],
-            "stepType": expConfig['fixed_params']["step_type"],
-            "nReversals": expConfig['fixed_params']["reversals"],
-            "nUp": expConfig['fixed_params']["n_up"],
-            "nDown": expConfig['fixed_params']["n_down"],
-            "FC": 0
-        }
-        experimentConditions.append(condition) 
+        # condition = {
+        #     "label": f"{stim_key}",
+        #     "stim_key": stim_key,
+        #     "startVal": 0.1,
+        #     "maxVal": expConfig['fixed_params']["max_val"],
+        #     "minVal": expConfig['fixed_params']["min_val"],
+        #     "stepSizes": expConfig['fixed_params']["step_size"],
+        #     "stepType": expConfig['fixed_params']["step_type"],
+        #     "nReversals": expConfig['fixed_params']["reversals"],
+        #     "nUp": expConfig['fixed_params']["n_up"],
+        #     "nDown": expConfig['fixed_params']["n_down"],
+        #     "FC": 0
+        # }
+        # experimentConditions.append(condition) 
+        continue
 
     else:
         # add all flanker conditions for other stim_key
@@ -141,19 +144,20 @@ for stim_key in stim_keys:
             
             if factor > 10:
                 fc_value = 0.8
-                print(f"baseline: {baseline_threshold}, fc_value: {fc_value}")
+                print(f"Factor > 10 so baseline: {baseline_threshold}, fc_value: {fc_value}")
             else:
                 fc_value = baseline_threshold*factor
                 
             
             print(f"{stim_key}, {label}", {fc_value})
+            
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": 0.1,
+                "startVal": 0.2,
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
-                "stepSizes": expConfig['fixed_params']["step_size"],
+                "stepSizes": expConfig['fixed_params']["step_sizes"],
                 "stepType": expConfig['fixed_params']["step_type"],
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],
@@ -171,9 +175,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 # Run the main experiment
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions, baseline_threshold)
-    #main_output = main.openDataFile()
-    #main.run_tutorial()
-    #main.run_main(main_output)
-
-#%%
-main.stairs
+    main_output = main.openDataFile()
+    main.run_tutorial()
+    main.run_main(main_output)
