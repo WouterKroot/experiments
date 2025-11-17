@@ -74,7 +74,7 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['combined'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.05, n_bins=10) # bins are to be samller than the smalles log stepsize, is 0.005
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.025, n_bins=20) # bins are to be samller than the smalles log stepsize, is 0.005
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives

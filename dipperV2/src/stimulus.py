@@ -15,7 +15,7 @@ class Stimulus:
                     #start=stim_def["start"],
                     #end=stim_def["end"],
                     pos=stim_def.get("pos", (0, 0)),
-                    lineWidth=stim_def.get("lineWidth", 4.2),
+                    lineWidth=stim_def.get("lineWidth", 4.0),
                     color=stim_def.get("color", "black"),
                     colorSpace=stim_def.get("colorSpace", "rgb"),
                 )
