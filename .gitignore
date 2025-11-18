@@ -1,6 +1,9 @@
 # Ignore data and sensitive stuff
 Output/
 participants/
+backup/
 *.psydat
+*.csv
 *.log
+*.edf
 .DS_Store

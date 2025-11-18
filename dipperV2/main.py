@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = True 
-tracker = False 
+is_test = False 
+tracker = True 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -111,7 +111,7 @@ else:
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 if baseline_threshold < 0 or baseline_threshold > 0.04:
-        baseline_threshold = 0.03 #0.01
+        baseline_threshold = 0.02 #0.01
         
 # get conditions:
 experimentConditions = []
@@ -176,5 +176,5 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions, baseline_threshold)
     main_output = main.openDataFile()
-    #main.run_tutorial()
+    main.run_tutorial()
     main.run_main(main_output)
