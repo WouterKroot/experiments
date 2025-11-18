@@ -14,7 +14,7 @@ fixed_params:
   n_down: 1
   min_val: 0.0
   max_val: 1.0
-  step_sizes: [0.7079457843841379, 0.5657591401470917, 0.4521298264928948, 0.3613222756796251, 0.2887528741799446, 0.23075859961954892, 0.1844121255921814, 0.1473740615582479, 0.11777486946929414, 0.09412049672680665, 0.07521696219251955, 0.06011008864405584, 0.04803733960364052, 0.03838932944950302, 0.030679063989438565, 0.024517358879792867, 0.019593195106848448, 0.015658019951383658, 0.012513201009886982, 0.01, 0.005] #[0.3613222756796251, 0.2887528741799446, 0.23075859961954892, 0.1844121255921814, 0.1473740615582479, 0.11777486946929414, 0.09412049672680665, 0.07521696219251955, 0.06011008864405584, 0.04803733960364052, 0.03838932944950302, 0.030679063989438565, 0.024517358879792867, 0.019593195106848448, 0.015658019951383658, 0.012513201009886982, 0.01]  #np.logspace(-0.15, -2, 20)
+  step_sizes: [0.7079457843841379, 0.5657591401470917, 0.4521298264928948, 0.3613222756796251, 0.2887528741799446, 0.23075859961954892, 0.1844121255921814, 0.1473740615582479, 0.11777486946929414, 0.09412049672680665, 0.07521696219251955, 0.06011008864405584, 0.04803733960364052, 0.03838932944950302, 0.030679063989438565, 0.024517358879792867, 0.019593195106848448, 0.015658019951383658, 0.012513201009886982, 0.01, 0.009, 0.008, 0.007, 0.006, 0.005] #[0.3613222756796251, 0.2887528741799446, 0.23075859961954892, 0.1844121255921814, 0.1473740615582479, 0.11777486946929414, 0.09412049672680665, 0.07521696219251955, 0.06011008864405584, 0.04803733960364052, 0.03838932944950302, 0.030679063989438565, 0.024517358879792867, 0.019593195106848448, 0.015658019951383658, 0.012513201009886982, 0.01]  #np.logspace(-0.15, -2, 20)
   step_type: 'lin'
   reversals: 20 #1
   nullOdds: 0.1
@@ -53,148 +53,148 @@ exp_blocks:
       # - label: "6400"
       #   FC_factor: 64
 
-# Kapadia uses 0.5° corresponds to ≈ 0.314 cm
-# to get 0.5 deg we need around 17 pixels, so we can 
-# Change to 20 pixels for easier calculations 
+# Kapadia uses 30' = 0.5° corresponds to ≈ 0.314 cm by width of 3' = 0.05 deg = 0.0314 cm, 1.65 px -> 2 px
+# to get 0.5 deg we need around 16.5 pixels -> 18 px for symmetry
+
 stimuli:
   target:
     - object: line
       type: target
       pos: [0, 0]
       angle: 90
-      length: 20
+      length: 18
 
   single_flanker_top:
     - object: line
       type: flanker
-      pos: [0, 30]
+      pos: [0, 27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: target
       pos: [0, 0]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [0, -30]
+      pos: [0, -27]
       angle: 90
-      length: 20
+      length: 18
 
   single_flanker_side_orth:
     - object: line
       type: flanker
-      pos: [-30, 0]
+      pos: [-27, 0]
       angle: 0
-      length: 20
+      length: 18
     - object: line
       type: target
       pos: [0, 0]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, 0]
+      pos: [27, 0]
       angle: 0
-      length: 20
+      length: 18
 
   triple_flanker:
     - object: line
       type: flanker
-      pos: [-30, 30]
+      pos: [-27, 27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [0, 30]
+      pos: [0, 27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, 30]
+      pos: [27, 27]
       angle: 90
-      length: 20
+      length: 18
 
     - object: line
       type: flanker
-      pos: [-30, 0]
+      pos: [-27, 0]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: target
       pos: [0, 0]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, 0]
+      pos: [27, 0]
       angle: 90
-      length: 20
+      length: 18
 
     - object: line
       type: flanker
-      pos: [-30, -30]
+      pos: [-27, -27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [0, -30]
+      pos: [0, -27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, -30]
+      pos: [27, -27]
       angle: 90
-      length: 20
+      length: 18
 
   triple_flanker_orth: # sides orthogonal
     - object: line
       type: flanker
-      pos: [-30, 30]
+      pos: [-27, 27]
       angle: 0
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [0, 30]
+      pos: [0, 27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, 30]
+      pos: [27, 27]
       angle: 0
-      length: 20
+      length: 18
 
     - object: line
       type: flanker
-      pos: [-30, 0]
+      pos: [-27, 0]
       angle: 0
-      length: 20
+      length: 18
     - object: line
       type: target
       pos: [0, 0]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, 0]
+      pos: [27, 0]
       angle: 0
-      length: 20
+      length: 18
 
     - object: line
       type: flanker
-      pos: [-30, -30]
+      pos: [-27, -27]
       angle: 0
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [0, -30]
+      pos: [0, -27]
       angle: 90
-      length: 20
+      length: 18
     - object: line
       type: flanker
-      pos: [30, -30]
+      pos: [27, -27]
       angle: 0
-      length: 20
+      length: 18
 
 
 #-------------------------------------------------------
