@@ -118,22 +118,7 @@ experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
 
 for stim_key in stim_keys:
-    if stim_key == "target":
-        # target-only condition (no flanker)
-        # condition = {
-        #     "label": f"{stim_key}",
-        #     "stim_key": stim_key,
-        #     "startVal": 0.1,
-        #     "maxVal": expConfig['fixed_params']["max_val"],
-        #     "minVal": expConfig['fixed_params']["min_val"],
-        #     "stepSizes": expConfig['fixed_params']["step_size"],
-        #     "stepType": expConfig['fixed_params']["step_type"],
-        #     "nReversals": expConfig['fixed_params']["reversals"],
-        #     "nUp": expConfig['fixed_params']["n_up"],
-        #     "nDown": expConfig['fixed_params']["n_down"],
-        #     "FC": 0
-        # }
-        # experimentConditions.append(condition) 
+    if stim_key == "target": 
         continue
 
     else:
@@ -143,12 +128,11 @@ for stim_key in stim_keys:
             factor = cond['FC_factor']
             
             if factor > 10:
-                fc_value = 0.8
+                fc_value = 1.0
                 print(f"Factor > 10 so baseline: {baseline_threshold}, fc_value: {fc_value}")
             else:
                 fc_value = baseline_threshold*factor
                 
-            
             print(f"{stim_key}, {label}", {fc_value})
             
             condition = {
