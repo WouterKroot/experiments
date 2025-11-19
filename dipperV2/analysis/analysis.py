@@ -162,9 +162,9 @@ for participant_id, dfs in participant_dfs.items():
 
 #%% Self: make sure that this runs for multiple participants as well
 # The binning needs to be done based on the individual participant data
-plot_data = []
 
 for participant_id, dfs in participant_dfs.items():
+    plot_data = []
     cleaned_df = dfs['cleaned_df']
 
     # baseline target 0.5
@@ -215,6 +215,4 @@ for participant_id, dfs in participant_dfs.items():
     
     
     plt.close()
-
-
 # %%
