@@ -100,7 +100,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-# baseline_threshold = 0.02
+#baseline_threshold = 0.1
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -110,8 +110,8 @@ else:
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-if baseline_threshold < 0 or baseline_threshold > 0.04:
-        baseline_threshold = 0.02 #0.01
+if baseline_threshold < 0 or baseline_threshold > 0.08:
+        baseline_threshold = 0.04 #0.01
         
 # get conditions:
 experimentConditions = []
@@ -152,8 +152,6 @@ for stim_key in stim_keys:
             experimentConditions.append(condition)
 
 print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentConditions}")
-
-
 
 #%%
 # Run the main experiment
