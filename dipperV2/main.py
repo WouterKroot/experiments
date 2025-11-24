@@ -64,9 +64,6 @@ window = visual.Window(fullscr= fullscr,
 myWin = Window(window, expConfig)
 myWin.stimuli = utils.load_stimuli(myWin) # A new drawable object is created and 
 
-#%% start with introduction
-myWin.intro()
-
 #%% Load in baseline settings from dict and run:
 if is_test == True:
     nTrials = expConfig["exp_blocks"]["baseline"]["test_trials"]
@@ -91,12 +88,20 @@ baselineCondition = [
 ]
 
 redo = True
+tutorial_done = False
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
     file_path = baseline.openDataFile()
+    
+    if tutorial_done == False:
+        baseline.run_tutorial()
+        tutorial_done = True
+    
+    myWin.intro_baseline()
     baseline.run_baseline()  # This appends to the same file
     baseline_threshold = baseline.getThresholdFromBase(file_path)
     redo = baseline.reDoBase(baseline_threshold)
+
     if redo:
         myWin.countdown()
         
@@ -111,7 +116,7 @@ else:
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 if baseline_threshold < 0 or baseline_threshold > 0.08:
-        baseline_threshold = 0.04 #0.01
+        baseline_threshold = 0.04
         
 # get conditions:
 experimentConditions = []
@@ -158,5 +163,6 @@ print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentCon
 if __name__ == "__main__":
     main = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, main_path, nullOdds, experimentConditions, baseline_threshold)
     main_output = main.openDataFile()
-    main.run_tutorial()
+    
+    myWin.intro_experiment()
     main.run_main(main_output)

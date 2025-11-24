@@ -36,10 +36,17 @@ class Window:
         while t.getTime() >= 0:
             cd = visual.TextStim(self.win, color = 'black', height = 32, text = f"Experiment will continue in {math.ceil(t.getTime())}...")
             self.drawOrder(cd)
-
-    def intro(self):
+            
+    def intro_baseline(self):
         intro_msg = visual.TextStim(self.win, color='black', height = 32, wrapWidth=600,
-                                  text = "Welcome to the experiment.\nYou will see a black dot that is quickly replaced by verticle line.\nThe line will only appear briefly.\nAfter it disappears, please respond to indicate whether you saw the line.\nPress [LEFT] for NO, or press [RIGHT] for YES.\nYou should respond as quickly as possible.\nPlease always look at the center of the screen.\nPress [RIGHT] when you are ready to begin.")
+                                  text = "Welcome to the baseline.\nYou will see a white dot that is quickly replaced by verticle line.\n\nThe line will only appear briefly.\nAfter it disappears, please respond to indicate whether you saw the line. \n\nPress [LEFT] for NO, or press [RIGHT] for YES.\nYou should respond as quickly as possible.\nPlease always look at the center of the screen.\nPress [RIGHT] when you are ready to begin.")
+        self.drawOrder(intro_msg)
+        event.waitKeys(keyList=['right','num_6'])
+        self.countdown()
+        
+    def intro_experiment(self):
+        intro_msg = visual.TextStim(self.win, color='black', height = 32, wrapWidth=600,
+                                  text = "Welcome to the REAL experiment. \nThe line will only appear briefly.\nAfter it disappears, please respond to indicate whether you saw the middle line.\nPress [LEFT] for NO, or press [RIGHT] for YES.\nYou should respond as quickly as possible.\nPlease always look at the center of the screen.\nPress [RIGHT] when you are ready to begin.")
         self.drawOrder(intro_msg)
         event.waitKeys(keyList=['right','num_6'])
         self.countdown()

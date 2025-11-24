@@ -162,7 +162,7 @@ for participant_id, dfs in participant_dfs.items():
 
 #%% Self: make sure that this runs for multiple participants as well
 # The binning needs to be done based on the individual participant data
-
+agg_plot_df = pd.DataFrame()
 for participant_id, dfs in participant_dfs.items():
     plot_data = []
     cleaned_df = dfs['cleaned_df']
@@ -179,11 +179,12 @@ for participant_id, dfs in participant_dfs.items():
 
     for cond in conditions:
         for mult in multipliers:
+            print(mult)
             key = f"{cond}_{mult}"
             if key in thresholds[participant_id] and 0.7 in thresholds[participant_id][key]:
                 t07 = thresholds[participant_id][key][0.7]
-                if mult == 4000:
-                    fc_x = 0.8
+                if mult > 900:
+                    fc_x = 1.0
                 else:
                     fc_x = baseline * (mult/100)
                 
@@ -195,7 +196,8 @@ for participant_id, dfs in participant_dfs.items():
                     'threshold07': t07
                 })
     plot_df = pd.DataFrame(plot_data)
-
+    agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
+    
     conditions = plot_df['condition'].unique()
     plt.figure(figsize=(8,6))
 
@@ -215,4 +217,37 @@ for participant_id, dfs in participant_dfs.items():
     
     
     plt.close()
+# %%
+df_mean = (
+    agg_plot_df.groupby(['condition', 'flanker'])
+          .agg(mean_threshold=('threshold07', 'mean'),
+               std_threshold=('threshold07', 'std'),
+               n=('threshold07', 'count'),
+               mean_FC=('FC', 'mean'))
+          .reset_index()
+)
+df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
+
+plt.figure(figsize=(8,6))
+
+for cond in df_mean['condition'].unique():
+    sub = df_mean[df_mean['condition'] == cond]
+
+    plt.errorbar( 
+        sub['mean_FC'],  # assuming baseline target 0.5
+        sub['mean_threshold'],
+        yerr=sub['sem'],      # optional: remove if no error bars
+        marker='o',
+        capsize=3,
+        label=cond
+    )
+
+plt.xlabel("FC")
+plt.ylabel("Mean Adjusted Threshold (0.7)")
+#plt.xlim(0, 0.2)
+plt.title("Mean Thresholds Across Participants by Condition")
+plt.legend()
+plt.grid(True)
+plt.savefig(os.path.join(output_path, "mean_thresholds_by_condition.png"), dpi=300)
+plt.show()
 # %%
