@@ -290,8 +290,6 @@ class Experiment:
         thisTrial = 0         # counts all displayed trials (including nulls)
         stairTrialCount = 0   # counts only trials added to staircase
 
-        self.myWin.countdown()
-
         # Loop until all staircase trials are completed
         while stairTrialCount < totalStaircaseTrials: 
             self.myWin.checkQuit()

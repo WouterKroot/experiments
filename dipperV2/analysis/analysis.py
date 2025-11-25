@@ -28,7 +28,7 @@ test = True
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'
 data_path = this_file.parent.parent / 'Output'
-output_path = this_file.parent / 'Output' / 'dipperV2'
+output_path = this_file.parent / 'Output' / 'dipperV2' / 'test'
 
 if test == True:
     exp_path = data_path / 'Test2'
@@ -193,7 +193,8 @@ for participant_id, dfs in participant_dfs.items():
                     'condition': cond,
                     'flanker': mult,
                     'FC': fc_x,
-                    'threshold07': t07
+                    'threshold07': t07,
+                    'target07': target
                 })
     plot_df = pd.DataFrame(plot_data)
     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
@@ -208,7 +209,7 @@ for participant_id, dfs in participant_dfs.items():
     plt.axhline(y=target, color='k', linestyle='--', label='Target (0.7)')
     plt.xlabel("FC")
     plt.ylabel("Adjusted Threshold (0.7)")
-    plt.title("Thresholds by Condition")
+    plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()
     plt.grid(True)
     save_path = os.path.join(participant_output_path, f"participant_{participant_id}_thresholds_by_condition.png")
@@ -223,7 +224,8 @@ df_mean = (
           .agg(mean_threshold=('threshold07', 'mean'),
                std_threshold=('threshold07', 'std'),
                n=('threshold07', 'count'),
-               mean_FC=('FC', 'mean'))
+               mean_FC=('FC', 'mean'),
+               mean_target=('target07', 'mean'))
           .reset_index()
 )
 df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
@@ -241,7 +243,7 @@ for cond in df_mean['condition'].unique():
         capsize=3,
         label=cond
     )
-
+plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
 plt.xlabel("FC")
 plt.ylabel("Mean Adjusted Threshold (0.7)")
 #plt.xlim(0, 0.2)
