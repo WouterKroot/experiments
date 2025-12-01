@@ -74,7 +74,7 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['combined'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.125, n_bins=50) # bins are to be samller than the smalles log stepsize, is 0.005
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.1, n_bins=40) # Size of the smallest log stepsize, is 0.0025
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
@@ -110,16 +110,20 @@ for participant_id, dfs in participant_dfs.items():
         glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
         glm_data = glm_data.dropna()
         glm_data = glm_data[glm_data['Total'] > 0]
+        
         if glm_data.empty:
             continue
-
+        
+        total_sum = glm_data['Total'].sum()
+        glm_data['prop_weight'] = glm_data['Total'] / total_sum
+     
         glm_model = smf.glm(
             formula='Adjusted_yes ~ TC_center',
             data=glm_data,
             family=sm.families.Binomial(link=sm.families.links.CLogLog()),
-            freq_weights=glm_data['Total']
-        ).fit()
-
+            freq_weights=glm_data['prop_weight']  # use prop_weight here
+        ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
+         
         fit_results[participant_id][label_name] = glm_model
         
         if label_name == "target":
@@ -130,6 +134,7 @@ for participant_id, dfs in participant_dfs.items():
         for threshVal in use_thresh_vals:
             eta = glm_model.family.link(threshVal)
             thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
+
             thresholds[participant_id][label_name][threshVal] = thresh_glm 
 
         smoothInt = np.linspace(glm_data['TC_center'].min(),
@@ -208,6 +213,7 @@ for participant_id, dfs in participant_dfs.items():
 
     plt.axhline(y=target, color='k', linestyle='--', label='Target (0.7)')
     plt.xlabel("FC")
+    #plt.xlim(0, 0.2)
     plt.ylabel("Adjusted Threshold (0.7)")
     plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()

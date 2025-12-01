@@ -16,6 +16,13 @@ stimuli = {
         {"object": "line", "type": "target",  "pos": [0, 0],  "angle": 90, "length": 18},
         {"object": "line", "type": "flanker", "pos": [0,-27], "angle": 90, "length": 18},
     ],
+    
+    "single_flanker_side": [
+        {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 90,  "length": 18},
+        {"object": "line", "type": "target",  "pos": [0, 0],   "angle": 90, "length": 18},
+        {"object": "line", "type": "flanker", "pos": [27, 0],  "angle": 90,  "length": 18},
+    ],
+
 
     "single_flanker_side_orth": [
         {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 0,  "length": 18},

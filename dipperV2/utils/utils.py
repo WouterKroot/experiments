@@ -178,7 +178,7 @@ def clean_df(df):
     )
     return cleaned_df, false_positives
 
-def response_distribution(df, false_positive_dict, max_val=0.1, n_bins=30):
+def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
     """
     Returns the distribution of response=1 vs response=0 per binned intensity (TC)
     for every unique label, including adjusted proportion based on false positives.
