@@ -23,7 +23,7 @@ utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 the
 sys.path.append(str(utils_path))
 import utils
 
-test = True
+test = False
 #%%
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'
@@ -71,6 +71,7 @@ for pid in ids:
         'combined': combined}
 #%%
 # Investigate the raw number of responses and calculate the proportion
+aggregated_list = []
 for participant_id, dfs in participant_dfs.items():
     df = dfs['combined'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
@@ -79,7 +80,9 @@ for participant_id, dfs in participant_dfs.items():
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
     participant_dfs[participant_id]['response_summary'] = all_distributions
-    
+    aggregated_list.append(cleaned_df)
+
+aggregated_data = pd.concat(aggregated_list, ignore_index=True)
 #%%
 fit_results = {}
 thresholds = {}  # store threshold values
@@ -258,4 +261,24 @@ plt.legend()
 plt.grid(True)
 plt.savefig(os.path.join(output_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
+# %%
+# glm_model = smf.glm(
+#             formula='Adjusted_yes ~ TC_center',
+#             data=glm_data,
+#             family=sm.families.Binomial(link=sm.families.links.CLogLog()),
+#             freq_weights=glm_data['prop_weight']  # use prop_weight here
+#         ).fit()
+df = aggregated_data.copy()
+df["TC_z"] = (df["TC"] - df["TC"].mean()) / df["TC"].std()
+df["FC_z"] = (df["FC"] - df["FC"].mean()) / df["FC"].std()
+
+fit_result = smf.glm(
+    formula='response ~ TC_z * FC_z + C(condition, Treatment(reference="target"))',
+    data=df,
+    family=sm.families.Binomial()
+).fit()
+print(fit_result.summary())
+
+# %%
+
 # %%
