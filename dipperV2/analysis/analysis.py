@@ -44,11 +44,11 @@ baseline_df = utils.load_data(baseline_path)
 main_df = utils.load_data(main_path)
 #%% 
 ids = main_df['id'].unique()
+#ids = [1014, 1015]
 print(f"Found {len(ids)} participant(s): {ids}")
 
 labels = main_df['label'].unique()
 print(f"Found {len(labels)}") # conditions: {labels}")
-
 #%% seperate dataframes per participant
 
 participant_dfs = {}
@@ -83,7 +83,261 @@ for participant_id, dfs in participant_dfs.items():
     aggregated_list.append(cleaned_df)
 
 aggregated_data = pd.concat(aggregated_list, ignore_index=True)
+# labels = aggregated_data['label'].unique()
+# print(f"Found {len(labels)}") # conditions: {labels}")
+
+# cmap = plt.get_cmap("tab10")
+# label_colors = {label: cmap(i % 10) for i, label in enumerate(labels)}
 #%%
+# fit_results = {}
+# thresholds = {}  # store threshold values
+
+# for participant_id, dfs in participant_dfs.items():
+#     print(f"\n Participant {participant_id}")
+
+#     response_summary = dfs['response_summary']
+#     fit_results[participant_id] = {}
+#     thresholds[participant_id] = {}
+
+#     participant_output_path = os.path.join(output_path, str(participant_id))
+#     os.makedirs(participant_output_path, exist_ok=True)
+
+#     for label_name, df_label in response_summary.items():
+#         if label_name not in thresholds[participant_id]:
+#             thresholds[participant_id][label_name] = {}
+#         if df_label.empty:
+#             continue
+
+#         df_label = df_label.copy()
+#         df_label['TC_center'] = df_label['TC_bin'].apply(
+#             lambda x: x.mid if hasattr(x, 'mid') else np.nan
+#         )
+#         df_label = df_label.dropna(subset=['TC_center'])
+#         df_label['Total'] = df_label['Response_0'] + df_label['Response_1']
+
+#         glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
+#         glm_data = glm_data.dropna()
+#         glm_data = glm_data[glm_data['Total'] > 0]
+        
+#         if glm_data.empty:
+#             continue
+        
+#         total_sum = glm_data['Total'].sum()
+#         glm_data['prop_weight'] = glm_data['Total'] / total_sum
+     
+#         glm_model = smf.glm(
+#             formula='Adjusted_yes ~ TC_center',
+#             data=glm_data,
+#             #family=sm.families.Binomial(link=sm.families.links.CLogLog()),
+#             family=sm.families.Binomial(),
+#             freq_weights=glm_data['prop_weight']  # use prop_weight here
+#         ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
+         
+#         fit_results[participant_id][label_name] = glm_model
+        
+#         if label_name == "target":
+#             use_thresh_vals = [0.5, 0.7, 1.0]
+#         else:
+#             use_thresh_vals = [0.7]
+            
+#         for threshVal in use_thresh_vals:
+#             eta = glm_model.family.link(threshVal)
+#             thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
+
+#             thresholds[participant_id][label_name][threshVal] = thresh_glm 
+
+#         smoothInt = np.linspace(glm_data['TC_center'].min(),
+#                                 glm_data['TC_center'].max(), 200)
+#         glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
+
+#         plt.figure(figsize=(6, 4))
+#         plt.plot(smoothInt, glm_pred, label='GLM (CLogLog) Fit', lw=2)
+#         plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o',
+#                  label='Adjusted Data')
+#         plt.axvline(thresh_glm, color='k', linestyle=':',
+#                     label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
+#         plt.xlabel('Stimulus Intensity (TC)')
+#         plt.ylabel('Adjusted P(Response=1)')
+#         plt.title(f'{participant_id} | {label_name}')
+#         plt.legend()
+#         plt.tight_layout()
+        
+
+#         safe_label = label_name.replace("/", "_").replace("\\", "_")
+#         save_path = os.path.join(participant_output_path, f"{safe_label}.png")
+#         plt.savefig(save_path, dpi=300)
+#         plt.show()
+#         plt.close()
+
+#         print(f"Saved GLM plot for {label_name} → {save_path}")
+#         print(f"{label_name} GLM summary:")
+#         print(glm_model.summary())
+#         print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
+
+#%% own code but newly written
+# fit_results = {}
+# thresholds = {}  # store threshold values
+
+# for participant_id, dfs in participant_dfs.items():
+#     print(f"\n Participant {participant_id}")
+
+#     response_summary = dfs['response_summary']
+#     fit_results[participant_id] = {}
+#     thresholds[participant_id] = {}
+
+#     participant_output_path = os.path.join(output_path, str(participant_id))
+#     os.makedirs(participant_output_path, exist_ok=True)
+
+#     for label_name, df_label in response_summary.items():
+#         if label_name not in thresholds[participant_id]:
+#             thresholds[participant_id][label_name] = {}
+#         if df_label.empty:
+#             continue
+        
+#         if label_name == "target":
+#             df_label = df_label.copy()
+#             df_label['TC_center'] = df_label['TC_bin'].apply(
+#                 lambda x: x.mid if hasattr(x, 'mid') else np.nan
+#             )
+#             df_label = df_label.dropna(subset=['TC_center'])
+#             df_label['Total'] = df_label['Response_0'] + df_label['Response_1']
+
+#             glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
+#             glm_data = glm_data.dropna()
+#             glm_data = glm_data[glm_data['Total'] > 0]
+            
+#             if glm_data.empty:
+#                 continue
+            
+#             total_sum = glm_data['Total'].sum()
+#             glm_data['prop_weight'] = glm_data['Total'] / total_sum
+        
+#             glm_model = smf.glm(
+#                 formula='Adjusted_yes ~ TC_center',
+#                 data=glm_data,
+#                 #family=sm.families.Binomial(link=sm.families.links.CLogLog()),
+#                 family=sm.families.Binomial(),
+#                 freq_weights=glm_data['prop_weight']  # use prop_weight here
+#             ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
+            
+#             fit_results[participant_id][label_name] = glm_model
+            
+#             if label_name == "target":
+#                 use_thresh_vals = [0.5, 0.7, 0.95]
+#             else:
+#                 continue
+                
+#             for threshVal in use_thresh_vals:
+#                 eta = glm_model.family.link(threshVal)
+#                 thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
+
+#                 thresholds[participant_id][label_name][threshVal] = thresh_glm 
+
+#             smoothInt = np.linspace(glm_data['TC_center'].min(),
+#                                     glm_data['TC_center'].max(), 200)
+#             glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
+
+#             plt.figure(figsize=(6, 4))
+#             plt.plot(smoothInt, glm_pred, label='GLM (CLogLog) Fit', lw=2)
+#             plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o',
+#                     label='Adjusted Data')
+#             plt.axvline(thresh_glm, color='k', linestyle=':',
+#                         label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
+#             plt.xlabel('Stimulus Intensity (TC)')
+#             plt.ylabel('Adjusted P(Response=1)')
+#             plt.title(f'{participant_id} | {label_name}')
+#             plt.legend()
+#             plt.tight_layout()
+            
+#             safe_label = label_name.replace("/", "_").replace("\\", "_")
+#             save_path = os.path.join(participant_output_path, f"{safe_label}.png")
+#             plt.savefig(save_path, dpi=300)
+#             plt.show()
+#             plt.close()
+
+#             print(f"Saved GLM plot for {label_name} → {save_path}")
+
+#         #adjust respones based on target 0.99 threshold
+#         target_threshold_1 = thresholds[participant_id]["target"][0.95]
+        
+#         print(df_label) 
+        
+#         df_label = df_label.copy()
+#         df_label['TC_center'] = df_label['TC_bin'].apply(
+#             lambda x: x.mid if hasattr(x, 'mid') else np.nan
+#         )
+#         df_label = df_label.dropna(subset=['TC_center'])
+#         print(len(df_label["TC_center"] >= target_threshold_1))
+#         df_label.loc[df_label["TC_center"] >= target_threshold_1, "Adjusted_yes"] = 1.0
+        
+#         df_label['Total'] = df_label['Response_0'] + df_label['Response_1']
+
+#         glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
+#         glm_data = glm_data.dropna()
+#         glm_data = glm_data[glm_data['Total'] > 0]
+        
+        
+#         if glm_data.empty:
+#             continue
+        
+#         total_sum = glm_data['Total'].sum()
+#         glm_data['prop_weight'] = glm_data['Total'] / total_sum
+
+#         #Adjust Adjusted_yes for all points above 0.9 target threshold
+#         target_threshold_1 = thresholds[participant_id]["target"][0.95]
+#         mask = glm_data['TC_center'] >= target_threshold_1
+#         glm_data.loc[mask, 'Adjusted_yes'] = 1.0
+
+#         glm_model = smf.glm(
+#             formula='Adjusted_yes ~ TC_center',
+#             data=glm_data,
+#             #family=sm.families.Binomial(link=sm.families.links.CLogLog()),
+#             family=sm.families.Binomial(),
+#             freq_weights=glm_data['prop_weight']  # use prop_weight here
+#         ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
+         
+#         fit_results[participant_id][label_name] = glm_model
+        
+        
+#         use_thresh_vals = [0.7]
+            
+#         for threshVal in use_thresh_vals:
+#             eta = glm_model.family.link(threshVal)
+#             thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
+
+#             thresholds[participant_id][label_name][threshVal] = thresh_glm 
+
+#         smoothInt = np.linspace(glm_data['TC_center'].min(),
+#                                 glm_data['TC_center'].max(), 200)
+#         glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
+
+#         plt.figure(figsize=(6, 4))
+#         plt.plot(smoothInt, glm_pred, label='GLM (CLogLog) Fit', lw=2)
+#         plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o',
+#                  label='Adjusted Data')
+#         plt.axvline(thresh_glm, color='k', linestyle=':',
+#                     label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
+#         plt.xlabel('Stimulus Intensity (TC)')
+#         plt.ylabel('Adjusted P(Response=1)')
+#         plt.title(f'{participant_id} | {label_name}')
+#         plt.legend()
+#         plt.tight_layout()
+        
+
+#         safe_label = label_name.replace("/", "_").replace("\\", "_")
+#         save_path = os.path.join(participant_output_path, f"{safe_label}.png")
+#         plt.savefig(save_path, dpi=300)
+#         plt.show()
+#         plt.close()
+
+#         print(f"Saved GLM plot for {label_name} → {save_path}")
+#         print(f"{label_name} GLM summary:")
+#         print(glm_model.summary())
+#         print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
+
+#%%
+#3rd time is the charm, looks good but needs to be checked
+
 fit_results = {}
 thresholds = {}  # store threshold values
 
@@ -102,7 +356,7 @@ for participant_id, dfs in participant_dfs.items():
             thresholds[participant_id][label_name] = {}
         if df_label.empty:
             continue
-
+        
         df_label = df_label.copy()
         df_label['TC_center'] = df_label['TC_bin'].apply(
             lambda x: x.mid if hasattr(x, 'mid') else np.nan
@@ -110,52 +364,76 @@ for participant_id, dfs in participant_dfs.items():
         df_label = df_label.dropna(subset=['TC_center'])
         df_label['Total'] = df_label['Response_0'] + df_label['Response_1']
 
+        # Define Adjusted_yes
+        df_label['Adjusted_yes'] = df_label['Response_1'] / df_label['Total']
+
+        # Fit initial GLM
         glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
-        glm_data = glm_data.dropna()
         glm_data = glm_data[glm_data['Total'] > 0]
-        
         if glm_data.empty:
             continue
-        
+
         total_sum = glm_data['Total'].sum()
         glm_data['prop_weight'] = glm_data['Total'] / total_sum
-     
+
         glm_model = smf.glm(
             formula='Adjusted_yes ~ TC_center',
             data=glm_data,
-            family=sm.families.Binomial(link=sm.families.links.CLogLog()),
-            freq_weights=glm_data['prop_weight']  # use prop_weight here
-        ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
-         
+            family=sm.families.Binomial(),
+            freq_weights=glm_data['prop_weight']
+        ).fit()
+
         fit_results[participant_id][label_name] = glm_model
-        
+
+        # Compute thresholds
         if label_name == "target":
-            use_thresh_vals = [0.5, 0.7]
-        else:
-            use_thresh_vals = [0.7]
-            
+            use_thresh_vals = [0.5, 0.7, 0.95]
+            for threshVal in use_thresh_vals:
+                eta = glm_model.family.link(threshVal)
+                thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
+                thresholds[participant_id][label_name][threshVal] = thresh_glm 
+        
+        # Fit GLM on adjusted data
+        glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
+        glm_data = glm_data[glm_data['Total'] > 0]
+        
+        total_sum = glm_data['Total'].sum()
+        glm_data['prop_weight'] = glm_data['Total'] / total_sum
+
+         # Adjust Adjusted_yes for all points above 0.9 target threshold
+        target_threshold_1 = thresholds[participant_id]["target"][0.95]
+        mask = glm_data['TC_center'] >= target_threshold_1
+        glm_data.loc[mask, 'Adjusted_yes'] = 1.0
+        
+        #fit
+        glm_model = smf.glm(
+            formula='Adjusted_yes ~ TC_center',
+            data=glm_data,
+            family=sm.families.Binomial(),
+            freq_weights=glm_data['prop_weight']
+        ).fit()
+        fit_results[participant_id][label_name] = glm_model
+
+        # Example threshold for plotting
+        use_thresh_vals = [0.7]
         for threshVal in use_thresh_vals:
             eta = glm_model.family.link(threshVal)
             thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
-
             thresholds[participant_id][label_name][threshVal] = thresh_glm 
 
-        smoothInt = np.linspace(glm_data['TC_center'].min(),
-                                glm_data['TC_center'].max(), 200)
+        # Plot
+        smoothInt = np.linspace(glm_data['TC_center'].min(), glm_data['TC_center'].max(), 200)
         glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
 
         plt.figure(figsize=(6, 4))
-        plt.plot(smoothInt, glm_pred, label='GLM (CLogLog) Fit', lw=2)
-        plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o',
-                 label='Adjusted Data')
-        plt.axvline(thresh_glm, color='k', linestyle=':',
-                    label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
+        plt.plot(smoothInt, glm_pred, label='GLM Fit', lw=2, color=label_colors[label_name])
+        plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o', label='Adjusted Data')
+        plt.axvline(thresh_glm, color='k', linestyle=':', label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
         plt.xlabel('Stimulus Intensity (TC)')
         plt.ylabel('Adjusted P(Response=1)')
         plt.title(f'{participant_id} | {label_name}')
         plt.legend()
         plt.tight_layout()
-        
 
         safe_label = label_name.replace("/", "_").replace("\\", "_")
         save_path = os.path.join(participant_output_path, f"{safe_label}.png")
@@ -167,7 +445,6 @@ for participant_id, dfs in participant_dfs.items():
         print(f"{label_name} GLM summary:")
         print(glm_model.summary())
         print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
-
 #%% Self: make sure that this runs for multiple participants as well
 # The binning needs to be done based on the individual participant data
 agg_plot_df = pd.DataFrame()
@@ -178,6 +455,7 @@ for participant_id, dfs in participant_dfs.items():
     # baseline target 0.5
     baseline = thresholds[participant_id]['target'][0.5]
     target = thresholds[participant_id]['target'][0.7]
+    target01 = thresholds[participant_id]['target'][0.95]
 
     conditions = cleaned_df['condition'].unique()
     
@@ -221,11 +499,16 @@ for participant_id, dfs in participant_dfs.items():
     plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()
     plt.grid(True)
-    save_path = os.path.join(participant_output_path, f"participant_{participant_id}_thresholds_by_condition.png")
+    
+    summary_folder = os.path.join(output_path, "summary_plots")
+    os.makedirs(summary_folder, exist_ok=True)
+
+    save_path = os.path.join(
+        summary_folder,
+        f"participant_{participant_id}_thresholds_by_condition.png"
+    )
     plt.savefig(save_path, dpi=300)
-    plt.show()
-    
-    
+    plt.show()    
     plt.close()
 # %%
 df_mean = (
@@ -273,7 +556,7 @@ df["TC_z"] = (df["TC"] - df["TC"].mean()) / df["TC"].std()
 df["FC_z"] = (df["FC"] - df["FC"].mean()) / df["FC"].std()
 
 fit_result = smf.glm(
-    formula='response ~ TC_z * FC_z + C(condition, Treatment(reference="target"))',
+    formula= 'response ~ TC_z * FC_z * C(condition, Treatment(reference="target"))',
     data=df,
     family=sm.families.Binomial()
 ).fit()
