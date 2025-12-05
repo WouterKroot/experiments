@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = False 
-tracker = True 
+is_test = True 
+tracker = False 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -88,7 +88,7 @@ baselineCondition = [
 ]
 
 redo = True
-tutorial_done = False
+tutorial_done = True 
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
     file_path = baseline.openDataFile()
@@ -101,9 +101,6 @@ while redo:
     baseline.run_baseline()  # This appends to the same file
     baseline_threshold = baseline.getThresholdFromBase(file_path)
     redo = baseline.reDoBase(baseline_threshold)
-
-    if redo:
-        myWin.countdown()
         
 #baseline_threshold = 0.1
         

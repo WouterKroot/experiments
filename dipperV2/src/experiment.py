@@ -445,25 +445,18 @@ class Experiment:
         print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
         return thresh
 
-        
     def reDoBase(self,thresh):
         m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
-        m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")
-        if thresh > 0.1 or thresh <= 0:
-            self.myWin.drawOrder(m_redo)
-            keys = event.waitKeys(keyList=['y','n'])
-            if keys:
-                for key in keys:
-                    if key == 'y':
-                        return True
-                    else:
-                        return False
+                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nTry again [y / n]?")
+
+        self.myWin.drawOrder(m_redo)
+        keys = event.waitKeys(keyList=['y','n'])
+ 
+        if keys[0] == 'y':
+            return True
         else:
-            self.myWin.drawOrder(m_good)
-            event.waitKeys(keyList=['y','n'])
             return False
+
 
     def blinkDiode(self,t=2/60):
         # Defaults to two frames blink (at 60fps)

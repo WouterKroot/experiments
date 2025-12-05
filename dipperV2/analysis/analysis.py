@@ -415,36 +415,47 @@ for participant_id, dfs in participant_dfs.items():
         fit_results[participant_id][label_name] = glm_model
 
         # Example threshold for plotting
-        use_thresh_vals = [0.7]
+        # If this condition is the target, compute ALL thresholds
+        if label_name == "target":
+            use_thresh_vals = [0.5, 0.7, 0.95]
+        else:
+            # Otherwise only compute threshold at 0.7
+            use_thresh_vals = [0.7]
+    
         for threshVal in use_thresh_vals:
             eta = glm_model.family.link(threshVal)
             thresh_glm = (eta - glm_model.params['Intercept']) / glm_model.params['TC_center']
-            thresholds[participant_id][label_name][threshVal] = thresh_glm 
+            thresholds[participant_id][label_name][threshVal] = thresh_glm
 
-        # Plot
-        smoothInt = np.linspace(glm_data['TC_center'].min(), glm_data['TC_center'].max(), 200)
-        glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
+            # Plot
+            smoothInt = np.linspace(glm_data['TC_center'].min(), glm_data['TC_center'].max(), 200)
+            glm_pred = glm_model.predict(pd.DataFrame({'TC_center': smoothInt}))
 
-        plt.figure(figsize=(6, 4))
-        plt.plot(smoothInt, glm_pred, label='GLM Fit', lw=2, color=label_colors[label_name])
-        plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o', label='Adjusted Data')
-        plt.axvline(thresh_glm, color='k', linestyle=':', label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
-        plt.xlabel('Stimulus Intensity (TC)')
-        plt.ylabel('Adjusted P(Response=1)')
-        plt.title(f'{participant_id} | {label_name}')
-        plt.legend()
-        plt.tight_layout()
+            plt.figure(figsize=(6, 4))
+            plt.plot(smoothInt, glm_pred, label='GLM Fit', lw=2)
+            # plt.plot(smoothInt, glm_pred, label='GLM Fit', lw=2, color=label_colors[label_name])
+            plt.plot(df_label['TC_center'], df_label['Adjusted_yes'], 'o', label='Adjusted Data')
+            plt.axvline(thresh_glm, color='k', linestyle=':', label=f'GLM Threshold (P={threshVal}) = {thresh_glm:.3f}')
+            plt.xlabel('Stimulus Intensity (TC)')
+            plt.ylabel('Adjusted P(Response=1)')
+            plt.title(f'{participant_id} | {label_name}')
+            plt.legend()
+            plt.tight_layout()
 
-        safe_label = label_name.replace("/", "_").replace("\\", "_")
-        save_path = os.path.join(participant_output_path, f"{safe_label}.png")
-        plt.savefig(save_path, dpi=300)
-        plt.show()
-        plt.close()
+            safe_label = label_name.replace("/", "_").replace("\\", "_")
+            thresh_str = f"{threshVal:.2f}".replace(".", "p")
 
-        print(f"Saved GLM plot for {label_name} → {save_path}")
-        print(f"{label_name} GLM summary:")
-        print(glm_model.summary())
-        print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
+            
+            save_path = os.path.join(participant_output_path, f"{safe_label}_thr{thresh_str}.png")
+            plt.savefig(save_path, dpi=300)
+            plt.show()
+            plt.close()
+
+            print(f"Saved GLM plot for {label_name} → {save_path}")
+            print(f"{label_name} GLM summary:")
+            print(glm_model.summary())
+            print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
+        
 #%% Self: make sure that this runs for multiple participants as well
 # The binning needs to be done based on the individual participant data
 agg_plot_df = pd.DataFrame()
@@ -480,7 +491,8 @@ for participant_id, dfs in participant_dfs.items():
                     'flanker': mult,
                     'FC': fc_x,
                     'threshold07': t07,
-                    'target07': target
+                    'target07': target,
+                    'target05': baseline,
                 })
     plot_df = pd.DataFrame(plot_data)
     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
@@ -488,6 +500,8 @@ for participant_id, dfs in participant_dfs.items():
     conditions = plot_df['condition'].unique()
     plt.figure(figsize=(8,6))
 
+
+    
     for cond in conditions:
         sub = plot_df[plot_df['condition'] == cond]
         plt.plot(sub['FC'], sub['threshold07'], marker='o', label=cond)
@@ -556,7 +570,8 @@ df["TC_z"] = (df["TC"] - df["TC"].mean()) / df["TC"].std()
 df["FC_z"] = (df["FC"] - df["FC"].mean()) / df["FC"].std()
 
 fit_result = smf.glm(
-    formula= 'response ~ TC_z * FC_z * C(condition, Treatment(reference="target"))',
+    # formula= 'response ~ TC_z * FC_z * C(condition, Treatment(reference="target"))',
+    formula= 'response ~ TC_z * FC_z * C(condition, Treatment(reference="triple_flanker"))',
     data=df,
     family=sm.families.Binomial()
 ).fit()

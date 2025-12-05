@@ -111,7 +111,7 @@ for idx, name in enumerate(names):
     # draw each line using exact endpoints
     for comp in components:
         x0, y0, x1, y1 = line_endpoints(comp['pos'], comp['angle'], comp['length'])
-        color = 'black' if comp['type'] == 'target' else 'black'
+        color = 'white' if comp['type'] == 'target' else 'white'
         lw = 1.0 if comp['type'] == 'target' else 1.0
         ax.plot([x0, x1], [y0, y1], color=color, linewidth=lw, solid_capstyle='round')
 
@@ -120,6 +120,7 @@ for idx, name in enumerate(names):
     # ax.plot([0, 0], [-1, 1], color='lightgray', linewidth=0.6)
 
     ax.set_title(name, fontsize=10)
+    ax.set_facecolor("0.7")
     ax.set_aspect('equal')
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
