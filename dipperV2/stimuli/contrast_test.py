@@ -1,3 +1,4 @@
+#%%
 from psychopy import visual, core, event
 import numpy as np 
 # === Window setup ===
@@ -12,7 +13,8 @@ win = visual.Window(
 # contrast_values = [0.001, 0.01, 0.013, 0.015, 0.018, 0.02, 0.025,
 #                    0.03, 0.04, 0.05, 0.1, 0.2, 0.4,
 #                    0.6, 0.8, 1.0, 1.2, 1.3, 1.5]
-contrast_values = np.logspace(-3, 0, 20)
+#contrast_values = np.logspace(-3, 0, 20)
+contrast_values = np.linspace(-1, 1, 5)
 print()
 
 # === Instruction text ===
@@ -24,13 +26,13 @@ instruction = visual.TextStim(
 )
 
 # === Text to display current contrast ===
-contrast_text = visual.TextStim(
-    win,
-    text="",
-    pos=(0, -100),
-    color="white",
-    height=24
-)
+#contrast_text = visual.TextStim(
+#    win,
+#    text="",
+#    pos=(0, -100),
+#    color="white",
+#    height=24
+#)
 
 # === Main display loop ===
 i = 0
@@ -41,19 +43,28 @@ while True:
     instruction.draw()
     
     # Draw test line (black line, modulated by contrast)
-    test_line = visual.Line(
+#    test_line = visual.Line(
+#        win=win,
+#        start=(-100, 0),
+#        end=(100, 0),
+#        lineColor="black",
+#        contrast=current_contrast,
+#        lineWidth=6
+#    )
+#    test_line.draw()
+    test_circle = visual.Circle(
         win=win,
-        start=(-100, 0),
-        end=(100, 0),
-        lineColor="black",
-        contrast=current_contrast,
-        lineWidth=6
+        radius=100,  # half of diameter; change as needed
+        edges=128,  # smooth circle
+        lineColor=None,  # no outline
+        fillColor="black",
+        contrast=current_contrast
     )
-    test_line.draw()
+    test_circle.draw()
     
     # Draw contrast text
-    contrast_text.text = f"Contrast: {current_contrast:.3f}"
-    contrast_text.draw()
+#    contrast_text.text = "Contrast: {:.3f}".format(current_contrast)
+#    contrast_text.draw()
     
     # Flip window
     win.flip()
