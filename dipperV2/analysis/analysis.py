@@ -17,6 +17,7 @@ from pathlib import Path
 import pylab
 import os
 from scipy.optimize import curve_fit
+import seaborn as sns
 # dynamic import
 this_file = Path(__file__).resolve()
 utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 then into utils
@@ -44,7 +45,7 @@ baseline_df = utils.load_data(baseline_path)
 main_df = utils.load_data(main_path)
 #%% 
 ids = main_df['id'].unique()
-#ids = [1014, 1015]
+#ids = [1019]
 print(f"Found {len(ids)} participant(s): {ids}")
 
 labels = main_df['label'].unique()
@@ -577,6 +578,43 @@ fit_result = smf.glm(
 ).fit()
 print(fit_result.summary())
 
-# %%
+# %% plot false positives:
+rows = []
+for pid, pdata in participant_dfs.items():
+    fp_dict = pdata.get('false_positives', {})
+    #flatten for plotting
+    for cond, stats in fp_dict.items():
+        rows.append({
+            'participant': pid,
+            'condition': cond,
+            'false_positives': int(stats.get('false_positives', 0)),
+            'total_null_trials': int(stats.get('total_null_trials', 0)),
+            'false_positive_rate': float(stats.get('false_positive_rate', 0.0))
+        })
+
+df_all = pd.DataFrame(rows)
+print(df_all.head())
+output_path = this_file.parent / 'Output' / 'dipperV2' / 'test' / 'false_positives'
+os.makedirs(output_path, exist_ok=True)
+
+for pid in df_all['participant'].unique():
+
+    sub = df_all[df_all['participant'] == pid]
+   
+    save_path = os.path.join(output_path, f"false_positives_{pid}.png")
+
+    plt.figure(figsize=(8, 4))
+    sns.barplot(data=sub, x='condition', y='false_positive_rate')
+
+    plt.xticks(rotation=45, ha='right')
+    #plt.ylim(0, sub['false_positive_rate'].max() * 1.2)
+    plt.ylim(0, 0.2)
+    plt.title(f'Participant {pid} – False Positive Rates by Condition')
+    plt.xlabel('Condition')
+    plt.ylabel('False Positive Rate')
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300)
+    plt.show()
 
 # %%

@@ -87,7 +87,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = True
+redo = False 
 tutorial_done = True 
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
