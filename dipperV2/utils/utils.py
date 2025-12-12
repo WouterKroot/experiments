@@ -31,7 +31,7 @@ def create_line(win, pos=(0, 0), angle=90, length=40):
         pos[0] + math.cos(math.radians(angle)) * length / 2,
         pos[1] + math.sin(math.radians(angle)) * length / 2
     )
-    return visual.Line(win, start=end1, end=end2, lineColor='black', lineWidth=3.5)
+    return visual.Line(win, start=end1, end=end2, lineColor='white', lineWidth=3.5)
 
 def load_stimuli(myWin):
     win = myWin.win

@@ -1,3 +1,6 @@
+# BASELINE is updating however MAIN is not. So have to check main update rules. make flanker contrast minimum be to -1.
+
+
 # Based on yaml configurations create conditions and stimulus objects per condition, load all stimuli from yaml and associate condition with name, draw stimuli with visual.Line inside a window object, and run the experiment with baseline contrast in the main.py file.
 #%%
 import os
@@ -56,7 +59,7 @@ window = visual.Window(fullscr= fullscr,
                        monitor="Flanders", 
                        units="pix",
                        colorSpace='rgb',
-                       color = [0,0,0],
+                       color = [-1,-1,-1],
                        bpc=(10,10,10),
                        depthBits=10
                        )
@@ -79,7 +82,7 @@ baselineCondition = [
     {'label': 'target',
      'startVal': 0.2,      # a bit above threshold to allow both up/down movement
      'maxVal': 1.0,         # upper bound for the staircase
-     'minVal': 0.0,      # lower bound
+     'minVal': -1.0,      # lower bound
      'stepSizes': stepsizes, # big → small log steps but psychophy implementation is linear
      'stepType': 'lin',
      'nReversals': 20,      # enough for reliable slope + threshold
@@ -87,7 +90,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = False
+redo = True 
 tutorial_done = False
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
@@ -105,7 +108,7 @@ while redo:
     if redo:
         myWin.countdown()
         
-#baseline_threshold = 0.1
+baseline_threshold = 0.1
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -115,8 +118,8 @@ else:
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-if baseline_threshold < 0 or baseline_threshold > 0.08:
-        baseline_threshold = 0.04
+# if baseline_threshold < 0 or baseline_threshold > 0.08:
+#         baseline_threshold = 0.04
         
 # get conditions:
 experimentConditions = []

@@ -64,6 +64,8 @@ class Experiment:
             for entry in stimulus['components']:
                 if entry.get('type') == 'target':
                     entry['line_obj'].contrast = targetIntensity
+                    #delete
+                    print(targetIntensity)
 
             # Draw fixation
             self.myWin.win.flip()  # Clear previous frame
@@ -123,7 +125,7 @@ class Experiment:
         print(f'this is middle: {middle}')
         
         if middle:
-            m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
+            m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
                         text= (
                 f"You have finished block {b+1}.\n"
                 "Take a LARGE break (~10 minutes).\n"
@@ -136,7 +138,7 @@ class Experiment:
             self.myWin.countdown()
             
         else:
-            m_break = visual.TextStim(self.myWin.win, color='black', height = 32, wrapWidth=600,
+            m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
                                     text=(f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.\n"
                                     "Press [RIGHT] to continue."))
 
@@ -147,7 +149,7 @@ class Experiment:
     def run_tutorial(self):
         win = self.myWin.win  
 
-        def show_text(msg, wait_keys=['right', 'num_6'], color='black'):
+        def show_text(msg, wait_keys=['right', 'num_6'], color='white'):
             text = visual.TextStim(win, color=color, text=msg)
             text.draw(); win.flip()
             event.waitKeys(keyList=wait_keys)
