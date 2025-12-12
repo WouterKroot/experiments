@@ -11,8 +11,8 @@ from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 
-is_test = False 
-tracker = True 
+is_test = True 
+tracker = False 
 
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
@@ -79,7 +79,7 @@ baselineCondition = [
     {'label': 'target',
      'startVal': 0.2,      # a bit above threshold to allow both up/down movement
      'maxVal': 1.0,         # upper bound for the staircase
-     'minVal': 0.001,      # lower bound
+     'minVal': 0.0,      # lower bound
      'stepSizes': stepsizes, # big → small log steps but psychophy implementation is linear
      'stepType': 'lin',
      'nReversals': 20,      # enough for reliable slope + threshold
@@ -87,7 +87,7 @@ baselineCondition = [
      'nDown': 1}            # targets ~50%
 ]
 
-redo = True
+redo = False
 tutorial_done = False
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
