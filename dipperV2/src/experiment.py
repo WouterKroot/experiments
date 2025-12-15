@@ -390,21 +390,21 @@ class Experiment:
             # --- Add response only if not null ---
             if not isNull:
                 stairs.addResponse(thisResp)
-                inner = stairs.currentStaircase
+                # inner = stairs.currentStaircase
 
-                # Safely extract reversal info
-                rev_intens = getattr(inner, "reversalIntensities", [])
-                rev_points = getattr(inner, "reversalPoints", [])
+                # # Safely extract reversal info
+                # rev_intens = getattr(inner, "reversalIntensities", [])
+                # rev_points = getattr(inner, "reversalPoints", [])
 
-                # Print staircase status
-                print(
-                    f"[{inner.name}] "
-                    f"trial={inner.thisTrialN}, "
-                    f"intensity={inner.intensity:.4f}, "
-                    f"correct={thisResp}, "
-                    f"nReversals={len(rev_intens)}, "
-                    f"reversalIntensities={rev_intens}, "
-                    f"stepSize={inner.stepSizeCurrent}")
+                # # Print staircase status
+                # print(
+                #     f"[{inner.name}] "
+                #     f"trial={inner.thisTrialN}, "
+                #     f"intensity={inner.intensity:.4f}, "
+                #     f"correct={thisResp}, "
+                #     f"nReversals={len(rev_intens)}, "
+                #     f"reversalIntensities={rev_intens}, "
+                #     f"stepSize={inner.stepSizeCurrent}")
                 
                 stairTrialCount += 1
 

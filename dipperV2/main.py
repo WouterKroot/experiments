@@ -80,7 +80,7 @@ stepsizes = expConfig["fixed_params"]["step_sizes"]
 
 baselineCondition = [
     {'label': 'target',
-     'startVal': 0.2,      # a bit above threshold to allow both up/down movement
+     'startVal': 0.0,      # a bit above threshold to allow both up/down movement
      'maxVal': 1.0,         # upper bound for the staircase
      'minVal': -1.0,      # lower bound
      'stepSizes': stepsizes, # big → small log steps but psychophy implementation is linear
@@ -107,8 +107,10 @@ while redo:
 
     if redo:
         myWin.countdown()
-        
-baseline_threshold = 0.1
+
+# if baseline_threshold < 0 or baseline_threshold > 0.08:
+#         baseline_threshold = 0.04
+#baseline_threshold = -0.8
         
 #%% Load in main setting and run
 if is_test == 1:
@@ -118,8 +120,7 @@ else:
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-# if baseline_threshold < 0 or baseline_threshold > 0.08:
-#         baseline_threshold = 0.04
+
         
 # get conditions:
 experimentConditions = []
@@ -146,7 +147,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": 0.2,
+                "startVal": 0.0,
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
                 "stepSizes": expConfig['fixed_params']["step_sizes"],
