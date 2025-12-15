@@ -206,7 +206,7 @@ def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
     all_distributions = {}
 
     # Filter TC range
-    df = df[(df['TC'] >= 0) & (df['TC'] <= max_val)].copy()
+    df = df[(df['TC'] >= -1) & (df['TC'] <= max_val)].copy()
 
     # Define bins
     bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)

@@ -423,9 +423,9 @@ class Experiment:
         psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
         stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
-    def getThresholdFromBase(self, file_path):
-        threshVal = 0.5
-        expectedMin = 0.0
+    def getThresholdFromBase(self, file_path): #worked previously, but since min val is -1 the fit is -inf
+        threshVal = 0.5 #50% correct for 2AFC, TC
+        #expectedMin = 0.5 #2AFC normally min is expected 0.5
 
         thisDat = pd.read_csv(file_path)
         thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
@@ -434,13 +434,17 @@ class Experiment:
         allResponses = thisDat['response'].tolist()
 
         i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
+        #print(f'Intensities: {i}, Responses: {r}, N: {n}') 
         combinedInten, combinedResp, combinedN = i, r, n
         combinedN = pylab.array(combinedN)
-
+        
         fit = data.FitLogistic(
             combinedInten, combinedResp,
-            expectedMin=expectedMin,
+            # expectedMin=expectedMin,
+            expectedMin=0.0, # needs to be 0.0
             sems=1.0 / combinedN,
+            #sems = 1.0,
+            # sems = np.sqrt((combinedResp * (1 - combinedResp)) / combinedN),
             optimize_kws={'maxfev': int(1e6)}
         )
         thresh = fit.inverse(threshVal)

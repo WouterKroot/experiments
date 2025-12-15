@@ -23,7 +23,7 @@ utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 the
 sys.path.append(str(utils_path))
 import utils
 
-test = False
+test = True 
 #%%
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'

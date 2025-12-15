@@ -91,7 +91,7 @@ baselineCondition = [
 ]
 
 redo = True 
-tutorial_done = False
+tutorial_done = True
 while redo:
     baseline = Experiment(myWin, sub_id, nTrials, nBlocks, eye_tracker, expConfig, baseline_path, nullOdds, baselineCondition, baseline_threshold=None)
     file_path = baseline.openDataFile()
@@ -119,8 +119,6 @@ else:
     nTrials = expConfig["exp_blocks"]["main"]["n_trials"]
 
 nBlocks = expConfig["exp_blocks"]["main"]["n_blocks"]
-
-
         
 # get conditions:
 experimentConditions = []
@@ -140,7 +138,8 @@ for stim_key in stim_keys:
                 fc_value = 1.0
                 print(f"Factor > 10 so baseline: {baseline_threshold}, fc_value: {fc_value}")
             else:
-                fc_value = baseline_threshold*factor
+                # fc_value = baseline_threshold*factor
+                fc_value = -1 + (factor * (1 - abs(baseline_threshold)))
                 
             print(f"{stim_key}, {label}", {fc_value})
             
