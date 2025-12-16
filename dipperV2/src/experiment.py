@@ -6,6 +6,7 @@ import pandas as pd
 import pylab
 import numpy as np
 from typing import Literal
+from utils import utils
 
 class Experiment:
     def __init__(self, win,
@@ -120,14 +121,49 @@ class Experiment:
         stairs.saveAsPickle(psydat_path)
         self.dataFile.close()
         print("Baseline done, break!")
+        
+    def compute_break_stats(self):
+        df = pd.read_csv(
+            self.data_path,
+            names=['id','trial','label','FC','intensity','response','RT']
+        )
+
+        # ---- Average RT (exclude timeouts + null trials) ----
+        rt_mask = (df['RT'] != 99) & (~df['label'].str.endswith('_null'))
+        avg_rt = df.loc[rt_mask, 'RT'].mean()
+
+        # ---- False positives (null trials only) ----
+        null_trials = df[df['label'].str.endswith('_null')]
+        if len(null_trials) > 0:
+            fp_rate = (null_trials['response'] == 1).mean()
+        else:
+            fp_rate = np.nan
+
+        return avg_rt, fp_rate
 
     def doBreak(self,b, middle=False):
         print(f'this is middle: {middle}')
         
+        avg_rt, fp_rate = self.compute_break_stats()
+
+        rt_text = (
+            "Avg RT: --"
+            if np.isnan(avg_rt)
+            else f"Avg RT: {avg_rt*1000:.0f} ms"
+        )
+
+        fp_text = (
+            "False positives: --"
+            if np.isnan(fp_rate)
+            else f"False positives: {fp_rate*100:.1f}%"
+        )
+        
         if middle:
             m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
                         text= (
-                f"You have finished block {b+1}.\n"
+                f"You have finished block {b+1}.\n\n"
+                f"{rt_text}\n"
+                f"{fp_text}\n\n"
                 "Take a LARGE break (~10 minutes).\n"
                 "Stretch your legs, get some water, or rest your eyes.\n"
                 "Press [RIGHT] when ready to continue."
@@ -140,7 +176,9 @@ class Experiment:
         else:
             m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
                                     text=(f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.\n"
-                                    "Press [RIGHT] to continue."))
+                                    "Press [RIGHT] to continue.\n\n"
+                                    f"{rt_text}\n"
+                                    f"{fp_text}\n\n"))
 
             self.myWin.drawOrder(m_break)
             event.waitKeys(keyList=['right','num_6'])
@@ -383,6 +421,16 @@ class Experiment:
                 thisResp = 0
                 thisRT = 99
 
+            if thisRT == 99:
+                fb_stim = self.myWin.feedback_nan      
+            elif thisResp == 1:
+                fb_stim = self.myWin.feedback_yes     
+            else:
+                fb_stim = self.myWin.feedback_no       
+
+            self.myWin.drawOrder(fb_stim)
+            core.wait(2/60)
+            
             # --- Log response ---
             self.eyeTracker.logResponse(thisResp, thisRT)
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{thisResp},{thisRT}\n")
