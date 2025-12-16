@@ -15,7 +15,7 @@ from src.window import Window
 from src.experiment import Experiment
 import numpy as np
 
-is_test = True 
+is_test = False 
 tracker = False 
 
 #%% 
@@ -71,9 +71,6 @@ theta_T = -0.8
 myWin = Window(window, expConfig)
 myWin.stimuli = utils.load_stimuli(myWin)
 
-# ============================================================
-# === BASELINE SETTINGS (shared)
-# ============================================================
 if is_test:
     nTrials_base = expConfig["exp_blocks"]["baseline"]["test_trials"]
 else:
@@ -83,9 +80,7 @@ nBlocks_base = expConfig["exp_blocks"]["baseline"]["n_blocks"]
 nullOdds = expConfig["fixed_params"]["nullOdds"]
 stepsizes = expConfig["fixed_params"]["step_sizes"]
 
-# ============================================================
-# === BASELINE 1: TARGET ONLY
-# ============================================================
+
 baselineTargetCondition = [
     {
         'label': 'target',
@@ -132,9 +127,6 @@ while redo:
 
 print(f"[BASELINE] Target threshold θ_T = {theta_T:.4f}")
 
-# ============================================================
-# === BASELINE 2: SINGLE FLANKER (TOP)
-# ============================================================
 baselineFlankerCondition = [
     {
         'label': 'single_flanker_top',
@@ -177,9 +169,6 @@ while redo:
 
 print(f"[BASELINE] Single flanker threshold θ_F = {theta_F:.4f}")
 
-# ============================================================
-# === MAIN EXPERIMENT SETTINGS
-# ============================================================
 if is_test:
     nTrials_main = expConfig["exp_blocks"]["main"]["test_trials"]
 else:
@@ -187,9 +176,6 @@ else:
 
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-# ============================================================
-# === CONSTRUCT FLANKER CONTRAST LEVELS
-# ============================================================
 delta = theta_T - theta_F
 
 fc_levels = [
@@ -203,15 +189,25 @@ fc_levels = [
 fc_levels = np.clip(fc_levels, -1.0, 1.0)
 print(f"[MAIN] Flanker contrast levels: {fc_levels}")
 
-# ============================================================
-# === BUILD MAIN CONDITIONS
-# ============================================================
 experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
 
 for stim_key in stim_keys:
     if stim_key == "target":
-        continue
+        # continue
+                condition = {
+            "label": f"{stim_key}",
+            "stim_key": stim_key,
+            "startVal": 0.0,
+            "maxVal": expConfig['fixed_params']["max_val"],
+            "minVal": expConfig['fixed_params']["min_val"],
+            "stepSizes": expConfig['fixed_params']["step_sizes"],
+            "stepType": expConfig['fixed_params']["step_type"],
+            "nReversals": expConfig['fixed_params']["reversals"],
+            "nUp": expConfig['fixed_params']["n_up"],
+            "nDown": expConfig['fixed_params']["n_down"],
+            "FC": 0.0
+        }
 
     for i, fc_value in enumerate(fc_levels):
         condition = {
@@ -232,9 +228,7 @@ for stim_key in stim_keys:
 
 print(f"[MAIN] Total conditions: {len(experimentConditions)}")
 
-# ============================================================
-# === RUN MAIN EXPERIMENT
-# ============================================================
+
 if __name__ == "__main__":
     main = Experiment(
         myWin, sub_id,

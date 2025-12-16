@@ -9,9 +9,9 @@ class Window:
         self.fixation = visual.GratingStim(win = window, color= [1,1,1], colorSpace='rgb',     tex=None, mask='circle', size=5)
         self.blank = visual.TextStim(win = window, text="You should not see this", color=window.color, colorSpace='rgb')
         self.diode = visual.GratingStim(win = window, color=[1, 1, 1],colorSpace='rgb',tex=None,mask='circle',units='pix',size=80,pos=[-780,-440],autoDraw=True)
-        self.feedback_yes = visual.TextStim(win=window, text="YES", color=[0, 1, 0], pos=[-850, -440])
-        self.feedback_no = visual.TextStim(win=window, text="NO", color=[1, 0, 0], pos=[-850, -440])
-        self.feedback_nan = visual.TextStim(win=window, text="NO RESPONSE", color=[1, 1, 0], pos=[-850, -440])
+        self.feedback_yes = visual.TextStim(win=window, text="YES", color=[0, 1, 0], pos=[-780, -500])
+        self.feedback_no = visual.TextStim(win=window, text="NO", color=[1, 0, 0], pos=[-780, -500])
+        self.feedback_nan = visual.TextStim(win=window, text="NO RESPONSE", color=[1, 1, 0], pos=[-780, -500])
         
         self.t_stim = expConfig['fixed_params']['t_stim']
         self.t_fixation = expConfig['fixed_params']['t_fixation']
