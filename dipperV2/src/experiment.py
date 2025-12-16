@@ -48,6 +48,7 @@ class Experiment:
 
         self.dataFile = open(fileName, 'w', buffering=1)  # line-buffered
         self.dataFile.write("id,trial,label,FC,TC,response,RT\n")
+
         
         return fileName
     
@@ -60,6 +61,7 @@ class Experiment:
         for trial, condition in stairs:
             targetIntensity = stairs.currentStaircase.intensity
             thisLabel = condition['label'] 
+            flankerIntensity = condition.get('FC', 0.0)
 
             stimulus = self.myWin.stimuli[thisLabel]
             for entry in stimulus['components']:
@@ -67,6 +69,8 @@ class Experiment:
                     entry['line_obj'].contrast = targetIntensity
                     #delete
                     print(targetIntensity)
+                else:
+                    entry['line_obj'].contrast = flankerIntensity
 
             # Draw fixation
             self.myWin.win.flip()  # Clear previous frame
@@ -109,7 +113,7 @@ class Experiment:
                 thisRT = 99
 
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{000},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
-            
+            self.dataFile.flush()
             
             if not thisLabel.endswith("_null"): 
                 stairs.addResponse(thisResp) # Don't adjust the staircase for a null trial
@@ -123,10 +127,12 @@ class Experiment:
         print("Baseline done, break!")
         
     def compute_break_stats(self):
-        df = pd.read_csv(
-            self.data_path,
-            names=['id','trial','label','FC','intensity','response','RT']
-        )
+        # df = pd.read_csv(
+        #     self.dataFile,
+        #     names=['id','trial','label','FC','intensity','response','RT']
+        # )
+        self.dataFile.flush()
+        df = pd.read_csv(os.path.join(self.path, f"{self.id}_main.csv"))
 
         # ---- Average RT (exclude timeouts + null trials) ----
         rt_mask = (df['RT'] != 99) & (~df['label'].str.endswith('_null'))
@@ -343,13 +349,14 @@ class Experiment:
             
             # --- Random null trial ---
             isNull = np.random.random() <= self.nullOdds
+            
             if isNull:
                 print("Null trial")
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
                 thisLabel = condition['label']
                 thisLabel += '_null'
-                targetIntensity = 0
+                targetIntensity = -1.0
             else:
                 stairs.next()  
                 currentStair = stairs.currentStaircase
@@ -434,7 +441,8 @@ class Experiment:
             # --- Log response ---
             self.eyeTracker.logResponse(thisResp, thisRT)
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{thisResp},{thisRT}\n")
-
+            #self.dataFile.flush()
+            
             # --- Add response only if not null ---
             if not isNull:
                 stairs.addResponse(thisResp)
