@@ -26,13 +26,13 @@ fixed_params:
 exp_blocks:
   baseline:
     test_trials:  5
-    n_trials: 65
+    n_trials: 75
     n_blocks: 1
-    start_val: 0.3
+    start_val: 0.0
   
   main:
     test_trials: 10
-    n_trials: 65 #50 minimal amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
+    n_trials: 75 #50 minimal amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
     n_blocks: 12 #7
     flanker_conditions:
       - label: "100"

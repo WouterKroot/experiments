@@ -179,11 +179,11 @@ nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 delta = theta_T - theta_F
 
 fc_levels = [
-    theta_F,                 # flanker threshold
-    theta_T,                 # target threshold
-    theta_T + delta,         # symmetric point
-    0.0,
-    0.8
+    ("F_thresh", theta_F),
+    ("T_thresh", theta_T),
+    ("T_half",      theta_T / 2),
+    ("F_zero",        0.0),
+    ("F_high",        0.8),
 ]
 
 fc_levels = np.clip(fc_levels, -1.0, 1.0)
@@ -206,12 +206,13 @@ for stim_key in stim_keys:
             "nReversals": expConfig['fixed_params']["reversals"],
             "nUp": expConfig['fixed_params']["n_up"],
             "nDown": expConfig['fixed_params']["n_down"],
-            "FC": 0.0
+            "FC": 0.0,
+            "FC_label": None
         }
 
-    for i, fc_value in enumerate(fc_levels):
+    for fc_name, fc_value in fc_levels:
         condition = {
-            "label": f"{stim_key}_{i}",
+            "label": f"{stim_key}_{fc_name}",   # semantic, shared across subjects
             "stim_key": stim_key,
             "startVal": 0.0,
             "maxVal": expConfig['fixed_params']["max_val"],
@@ -221,10 +222,13 @@ for stim_key in stim_keys:
             "nReversals": expConfig['fixed_params']["reversals"],
             "nUp": expConfig['fixed_params']["n_up"],
             "nDown": expConfig['fixed_params']["n_down"],
-            "FC": float(fc_value)
+            "FC": float(fc_value),              
+            "FC_label": fc_name                 
         }
 
         experimentConditions.append(condition)
+
+
 
 print(f"[MAIN] Total conditions: {len(experimentConditions)}")
 
