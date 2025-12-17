@@ -322,7 +322,8 @@ class Experiment:
         core.wait(3)
         event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
         
-    def run_main(self, dataFile): 
+    def run_main(self, dataFile):
+        print(self.myConds.keys()) 
         breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
         stairs = self.stairs
         totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials) # staircase trials

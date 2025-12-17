@@ -65,8 +65,8 @@ window = visual.Window(fullscr= fullscr,
                        depthBits=10
                        )
 #%%
-theta_F = -0.89
-theta_T = -0.8
+# theta_F = -0.89
+# theta_T = -0.8
 
 myWin = Window(window, expConfig)
 myWin.stimuli = utils.load_stimuli(myWin)
@@ -95,8 +95,8 @@ baselineTargetCondition = [
     }
 ]
 
-redo = False
-tutorial_done = True
+redo = True
+tutorial_done = False 
 
 while redo:
     baseline_T = Experiment(
@@ -139,11 +139,11 @@ baselineFlankerCondition = [
         'nReversals': 20,
         'nUp': 1,
         'nDown': 1,
-        'FC': theta_T          # <-- CRITICAL
+        'FC': theta_T          
     }
 ]
 
-redo = False
+redo = True
 while redo:
     baseline_F = Experiment(
         myWin, sub_id,
@@ -179,14 +179,14 @@ nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 delta = theta_T - theta_F
 
 fc_levels = [
-    ("F_thresh", theta_F),
-    ("T_thresh", theta_T),
+    ("F_50", theta_F),
+    ("T_50", theta_T),
     ("T_half",      theta_T / 2),
     ("F_zero",        0.0),
     ("F_high",        0.8),
 ]
 
-fc_levels = np.clip(fc_levels, -1.0, 1.0)
+#fc_levels = np.clip(fc_levels, -1.0, 1.0)
 print(f"[MAIN] Flanker contrast levels: {fc_levels}")
 
 experimentConditions = []
@@ -206,7 +206,7 @@ for stim_key in stim_keys:
             "nReversals": expConfig['fixed_params']["reversals"],
             "nUp": expConfig['fixed_params']["n_up"],
             "nDown": expConfig['fixed_params']["n_down"],
-            "FC": 0.0,
+            "FC": -1.0,
             "FC_label": None
         }
 
@@ -228,10 +228,7 @@ for stim_key in stim_keys:
 
         experimentConditions.append(condition)
 
-
-
 print(f"[MAIN] Total conditions: {len(experimentConditions)}")
-
 
 if __name__ == "__main__":
     main = Experiment(
