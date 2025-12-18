@@ -169,12 +169,13 @@ def clean_df(df):
     # # Optional: add a column for condition grouping
     # cleaned_df['condition'] = cleaned_df['label'].str.rsplit('_', n=1).str[0]
     
-    # Default flanker multiplier = 0 for 'target'
-    cleaned_df['flanker_multiplier'] = 0  
-    # For non-targets, extract numeric suffix and convert to int
-    # mask = cleaned_df['label'] != 'target'
-    mask = (cleaned_df['label'] != 'target') & (cleaned_df['label'] != 'single_flanker_top')
-    cleaned_df.loc[mask, 'flanker_multiplier'] = (
+    # Need a condition for different participants (all have different FC values)
+    cleaned_df['flanker_condition'] = np.nan 
+    # # For non-targets, extract numeric suffix and convert to int
+    # # mask = cleaned_df['label'] != 'target'
+    mask = ~cleaned_df['label'].str.startswith('baseline', na=False) & (cleaned_df['label'] != 'target')
+    # mask = (cleaned_df['label'] != 'baseline_target') & (cleaned_df['label'] != 'baseline')
+    cleaned_df.loc[mask, 'flanker_condition'] = (
         cleaned_df.loc[mask, 'label'].str.rsplit('_', n=1).str[1].astype(int)
     )
     return cleaned_df, false_positives

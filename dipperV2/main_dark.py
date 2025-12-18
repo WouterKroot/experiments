@@ -189,9 +189,9 @@ fc_levels = [
     ("0", F_10), # TC at 10% percent detection of straight condition
     ("1", F_50),
     ("2", F_99),
-    ("3",        F_99 / 2),
-    ("4",        0.0),
-    ("5",        1.0),
+    ("3", F_99 / 2),
+    ("4", 0.0),
+    ("5", 1.0),
 ]
 
 #fc_levels = np.clip(fc_levels, -1.0, 1.0)

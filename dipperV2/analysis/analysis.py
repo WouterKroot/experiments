@@ -72,7 +72,7 @@ for pid in ids:
 #%%
 # Investigate the raw number of responses and calculate the proportion
 for participant_id, dfs in participant_dfs.items():
-    df = dfs['combined'].copy()
+    df = dfs['main'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
     all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.9, n_bins=40) # Size of the smallest log stepsize, is 0.0025
    
@@ -127,10 +127,10 @@ for participant_id, dfs in participant_dfs.items():
         fit_results[participant_id][label_name] = glm_model
        
        #ToDO: differentiate between target and target baseline
-        if label_name == "target":
-            use_thresh_vals = [0.5, 0.7]
-        else:
-            use_thresh_vals = [0.7]
+        # if label_name == "target":
+        #     use_thresh_vals = [0.5, 0.7]
+        # else:
+        use_thresh_vals = [0.7]
             
         for threshVal in use_thresh_vals:
             eta = glm_model.family.link(threshVal)
@@ -175,35 +175,76 @@ for participant_id, dfs in participant_dfs.items():
 
     #ToDO: get baseline_target and main_target thresholds
     # baseline target 0.5
-    baseline = thresholds[participant_id]['target'][0.5]
+    # baseline = thresholds[participant_id]['target'][0.5]
     target = thresholds[participant_id]['target'][0.7]
-
     conditions = cleaned_df['condition'].unique()
     
-    #ToDo: Find the correct FC values per condition
-    multipliers = np.sort(cleaned_df['flanker_multiplier'].unique())
-    FC = cleaned_df['FC'].unique()
-    FC = np.sort(FC)
+    # build mapping: flanker_condition → FC
+    fc_map = (
+        cleaned_df
+        .dropna(subset=['flanker_condition', 'FC'])
+        .groupby('flanker_condition')['FC']
+        .nunique()
+    )
+    assert (fc_map == 1).all(), "Some flanker conditions map to multiple FC values!"
+    
+    fc_map = (
+    cleaned_df
+    .dropna(subset=['flanker_condition', 'FC'])
+    .groupby('flanker_condition')['FC']
+    .first()
+    .to_dict()
+    )
+
+    flanker_conditions = sorted(fc_map.keys())
 
     for cond in conditions:
-        for mult in multipliers:
-            print(mult)
+        for mult in flanker_conditions:
             key = f"{cond}_{mult}"
-            if key in thresholds[participant_id] and 0.7 in thresholds[participant_id][key]:
-                t07 = thresholds[participant_id][key][0.7]
-                if mult > 900:
-                    fc_x = 1.0
-                else: #ToDo: FC should not be calculated, but taken from data
-                    fc_x = baseline * (mult/100)
+
+            if key not in thresholds[participant_id]:
+                continue
+            if 0.7 not in thresholds[participant_id][key]:
+                continue
+
+            if mult not in fc_map:
+                continue  # safety
+
+            fc_x = fc_map[mult]
+            t07 = thresholds[participant_id][key][0.7]
+
+            plot_data.append({
+                'participant': participant_id,
+                'condition': cond,
+                'flanker': mult,
+                'FC': fc_x,
+                'threshold07': t07,
+                'target07': target
+            })
+    #ToDo: Find the correct FC values per condition
+    # flanker_conditions = np.sort(cleaned_df['flanker_condition'].dropna().unique())
+    # FC = cleaned_df['FC'].dropna().unique()
+    # FC = np.sort(FC)
+
+    # for cond in conditions:
+    #     for mult in flanker_conditions:
+    #         print(mult)
+    #         key = f"{cond}_{mult}"
+    #         if key in thresholds[participant_id] and 0.7 in thresholds[participant_id][key]:
+    #             t07 = thresholds[participant_id][key][0.7]
+    #             if mult > 4:
+    #                 fc_x = 1.0
+    #             else: #ToDo: FC should not be calculated, but taken from data
+    #                 fc_x = baseline * (mult/100)
                 
-                plot_data.append({
-                    'participant': participant_id,
-                    'condition': cond,
-                    'flanker': mult,
-                    'FC': fc_x,
-                    'threshold07': t07,
-                    'target07': target
-                })
+    #             plot_data.append({
+    #                 'participant': participant_id,
+    #                 'condition': cond,
+    #                 'flanker': mult,
+    #                 'FC': fc_x,
+    #                 'threshold07': t07,
+    #                 'target07': target
+    #             })
     plot_df = pd.DataFrame(plot_data)
     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
     
