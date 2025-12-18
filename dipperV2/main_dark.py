@@ -15,7 +15,7 @@ from src.window import Window
 from src.experiment import Experiment
 import numpy as np
 
-is_test = False 
+is_test = True 
 tracker = False 
 
 #%% 
@@ -83,8 +83,9 @@ stepsizes = expConfig["fixed_params"]["step_sizes"]
 
 baselineTargetCondition = [
     {
-        'label': 'target',
-        'startVal': 0.0,
+        'label': 'baseline_target',
+        'stim_key': 'target',
+        'startVal': -0.4,
         'maxVal': 1.0,
         'minVal': -1.0,
         'stepSizes': stepsizes,
@@ -119,19 +120,23 @@ while redo:
     myWin.intro_baseline()
     baseline_T.run_baseline()
 
-    theta_T = baseline_T.getThresholdFromBase(file_T)
-    redo = baseline_T.reDoBase(theta_T)
+    thresholds = baseline_T.getThresholdFromBase(file_T)
+    T_10 = thresholds[0]
+    T_50 = thresholds[1]
+    T_99 = thresholds[2]
 
+
+    redo = baseline_T.reDoBase(T_50)
     if redo:
         myWin.countdown()
 
-print(f"[BASELINE] Target threshold θ_T = {theta_T:.4f}")
+print(f"[BASELINE] Target threshold = {T_50:.4f}")
 
 baselineFlankerCondition = [
     {
-        'label': 'single_flanker_top',
-        'stim_key': 'flanker_top',
-        'startVal': 0.0,
+        'label': 'baseline_triple_flanker',
+        'stim_key': 'triple_flanker',
+        'startVal': -0.4,
         'maxVal': 1.0,
         'minVal': -1.0,
         'stepSizes': stepsizes,
@@ -139,7 +144,7 @@ baselineFlankerCondition = [
         'nReversals': 20,
         'nUp': 1,
         'nDown': 1,
-        'FC': theta_T          
+        'FC': T_50          
     }
 ]
 
@@ -161,13 +166,17 @@ while redo:
     myWin.intro_baseline()
     baseline_F.run_baseline()
 
-    theta_F = baseline_F.getThresholdFromBase(file_F)
-    redo = baseline_F.reDoBase(theta_F)
+    thresholds_F = baseline_F.getThresholdFromBase(file_F)
+    F_10 = thresholds_F[0]
+    F_50 = thresholds_F[1]
+    F_99 = thresholds_F[2]
+
+    redo = baseline_F.reDoBase(F_50)
 
     if redo:
         myWin.countdown()
 
-print(f"[BASELINE] Single flanker threshold θ_F = {theta_F:.4f}")
+print(f"[BASELINE] Single flanker threshold θ_F = {F_50:.4f}")
 
 if is_test:
     nTrials_main = expConfig["exp_blocks"]["main"]["test_trials"]
@@ -176,14 +185,13 @@ else:
 
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 
-delta = theta_T - theta_F
-
 fc_levels = [
-    ("F_50", theta_F),
-    ("T_50", theta_T),
-    ("T_half",      theta_T / 2),
-    ("F_zero",        0.0),
-    ("F_high",        0.8),
+    ("0", F_10), # TC at 10% percent detection of straight condition
+    ("1", F_50),
+    ("2", F_99),
+    ("3",        F_99 / 2),
+    ("4",        0.0),
+    ("5",        1.0),
 ]
 
 #fc_levels = np.clip(fc_levels, -1.0, 1.0)
@@ -195,38 +203,39 @@ stim_keys = list(myWin.stimuli.keys())
 for stim_key in stim_keys:
     if stim_key == "target":
         # continue
-                condition = {
-            "label": f"{stim_key}",
-            "stim_key": stim_key,
-            "startVal": 0.0,
-            "maxVal": expConfig['fixed_params']["max_val"],
-            "minVal": expConfig['fixed_params']["min_val"],
-            "stepSizes": expConfig['fixed_params']["step_sizes"],
-            "stepType": expConfig['fixed_params']["step_type"],
-            "nReversals": expConfig['fixed_params']["reversals"],
-            "nUp": expConfig['fixed_params']["n_up"],
-            "nDown": expConfig['fixed_params']["n_down"],
-            "FC": -1.0,
-            "FC_label": None
-        }
-
-    for fc_name, fc_value in fc_levels:
         condition = {
-            "label": f"{stim_key}_{fc_name}",   # semantic, shared across subjects
-            "stim_key": stim_key,
-            "startVal": 0.0,
-            "maxVal": expConfig['fixed_params']["max_val"],
-            "minVal": expConfig['fixed_params']["min_val"],
-            "stepSizes": expConfig['fixed_params']["step_sizes"],
-            "stepType": expConfig['fixed_params']["step_type"],
-            "nReversals": expConfig['fixed_params']["reversals"],
-            "nUp": expConfig['fixed_params']["n_up"],
-            "nDown": expConfig['fixed_params']["n_down"],
-            "FC": float(fc_value),              
-            "FC_label": fc_name                 
+        "label": f"{stim_key}",
+        "stim_key": stim_key,
+        "startVal": -0.6,
+        "maxVal": expConfig['fixed_params']["max_val"],
+        "minVal": expConfig['fixed_params']["min_val"],
+        "stepSizes": expConfig['fixed_params']["step_sizes"],
+        "stepType": expConfig['fixed_params']["step_type"],
+        "nReversals": expConfig['fixed_params']["reversals"],
+        "nUp": expConfig['fixed_params']["n_up"],
+        "nDown": expConfig['fixed_params']["n_down"],
+        "FC": -1.0,
+        "FC_label": None
         }
+            
+    else:
+        for fc_name, fc_value in fc_levels:
+            condition = {
+                "label": f"{stim_key}_{fc_name}",   # semantic, shared across subjects
+                "stim_key": stim_key,
+                "startVal": -0.6,
+                "maxVal": expConfig['fixed_params']["max_val"],
+                "minVal": expConfig['fixed_params']["min_val"],
+                "stepSizes": expConfig['fixed_params']["step_sizes"],
+                "stepType": expConfig['fixed_params']["step_type"],
+                "nReversals": expConfig['fixed_params']["reversals"],
+                "nUp": expConfig['fixed_params']["n_up"],
+                "nDown": expConfig['fixed_params']["n_down"],
+                "FC": float(fc_value),              
+                "FC_label": fc_name                 
+            }
 
-        experimentConditions.append(condition)
+    experimentConditions.append(condition)
 
 print(f"[MAIN] Total conditions: {len(experimentConditions)}")
 
@@ -239,7 +248,7 @@ if __name__ == "__main__":
         main_path,
         nullOdds,
         experimentConditions,
-        baseline_threshold=theta_T
+        baseline_threshold=T_50
     )
 
     main_output = main.openDataFile()

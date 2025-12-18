@@ -172,7 +172,8 @@ def clean_df(df):
     # Default flanker multiplier = 0 for 'target'
     cleaned_df['flanker_multiplier'] = 0  
     # For non-targets, extract numeric suffix and convert to int
-    mask = cleaned_df['label'] != 'target'
+    # mask = cleaned_df['label'] != 'target'
+    mask = (cleaned_df['label'] != 'target') & (cleaned_df['label'] != 'single_flanker_top')
     cleaned_df.loc[mask, 'flanker_multiplier'] = (
         cleaned_df.loc[mask, 'label'].str.rsplit('_', n=1).str[1].astype(int)
     )

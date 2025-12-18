@@ -23,7 +23,7 @@ utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 the
 sys.path.append(str(utils_path))
 import utils
 
-test = True 
+test = False 
 #%%
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'
@@ -35,8 +35,8 @@ if test == True:
 else:
     exp_path = data_path / 'Exp'
     
-baseline_path = exp_path / 'Baseline'
-main_path = exp_path / 'Main'
+baseline_path = exp_path / 'Baseline_dark'
+main_path = exp_path / 'Main_dark'
 eyelink_path = data_path / 'Eyelink'
 
 #%%
@@ -74,7 +74,7 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['combined'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.1, n_bins=40) # Size of the smallest log stepsize, is 0.0025
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.9, n_bins=40) # Size of the smallest log stepsize, is 0.0025
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
@@ -125,7 +125,8 @@ for participant_id, dfs in participant_dfs.items():
         ).fit() # or cov_type='HC3' # changed freq_weights to var_weights
          
         fit_results[participant_id][label_name] = glm_model
-        
+       
+       #ToDO: differentiate between target and target baseline
         if label_name == "target":
             use_thresh_vals = [0.5, 0.7]
         else:
@@ -172,12 +173,14 @@ for participant_id, dfs in participant_dfs.items():
     plot_data = []
     cleaned_df = dfs['cleaned_df']
 
+    #ToDO: get baseline_target and main_target thresholds
     # baseline target 0.5
     baseline = thresholds[participant_id]['target'][0.5]
     target = thresholds[participant_id]['target'][0.7]
 
     conditions = cleaned_df['condition'].unique()
     
+    #ToDo: Find the correct FC values per condition
     multipliers = np.sort(cleaned_df['flanker_multiplier'].unique())
     FC = cleaned_df['FC'].unique()
     FC = np.sort(FC)
@@ -190,7 +193,7 @@ for participant_id, dfs in participant_dfs.items():
                 t07 = thresholds[participant_id][key][0.7]
                 if mult > 900:
                     fc_x = 1.0
-                else:
+                else: #ToDo: FC should not be calculated, but taken from data
                     fc_x = baseline * (mult/100)
                 
                 plot_data.append({

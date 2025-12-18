@@ -20,19 +20,19 @@ fixed_params:
     0.015658019951383658, 0.012513201009886982, 0.01, 0.009, 0.008, 
     0.015, 0.009, 0.007, 0.006, 0.005, 0.0025] #np.logspace(-0.15, -2, 20)
   step_type: 'lin'
-  reversals: 21 #1
+  reversals: 2 #21 #1
   nullOdds: 0.1
 
 exp_blocks:
   baseline:
     test_trials:  5
-    n_trials: 75
+    n_trials: 10
     n_blocks: 1
-    start_val: 0.0
+    start_val: -0.4
   
   main:
     test_trials: 10
-    n_trials: 75 #50 minimal amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
+    n_trials: 10 #50 minimal amount of trials per staircase (29 staircases = n_cond * n_intens + 1), n_trials per block = (nCondition * n_intens*n_trials + 0.2*n)/blocks)
     n_blocks: 12 #7
     flanker_conditions:
       - label: "100"

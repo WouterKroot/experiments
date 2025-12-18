@@ -60,10 +60,11 @@ class Experiment:
 
         for trial, condition in stairs:
             targetIntensity = stairs.currentStaircase.intensity
+            thisStimulus = condition['stim_key']
             thisLabel = condition['label'] 
             flankerIntensity = condition.get('FC', 0.0)
 
-            stimulus = self.myWin.stimuli[thisLabel]
+            stimulus = self.myWin.stimuli[thisStimulus]
             for entry in stimulus['components']:
                 if entry.get('type') == 'target':
                     entry['line_obj'].contrast = targetIntensity
@@ -112,7 +113,7 @@ class Experiment:
                 thisResp = 0
                 thisRT = 99
 
-            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{000},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
             self.dataFile.flush()
             
             if not thisLabel.endswith("_null"): 
@@ -480,53 +481,79 @@ class Experiment:
         psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
         stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
-    def getThresholdFromBase(self, file_path): #worked previously, but since min val is -1 the fit is -inf
-        threshVal = 0.5 #50% correct for 2AFC, TC
-        #expectedMin = 0.5 #2AFC normally min is expected 0.5
+    # def getThresholdFromBase(self, file_path): #worked previously, but since min val is -1 the fit is -inf
+    #     threshVal = 0.5 #50% correct for 2AFC, TC
+    #     #expectedMin = 0.5 #2AFC normally min is expected 0.5
 
+    #     thisDat = pd.read_csv(file_path)
+    #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
+
+    #     allIntensities = thisDat['TC'].tolist()
+    #     allResponses = thisDat['response'].tolist()
+
+    #     i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
+    #     #print(f'Intensities: {i}, Responses: {r}, N: {n}') 
+    #     combinedInten, combinedResp, combinedN = i, r, n
+    #     combinedN = pylab.array(combinedN)
+        
+    #     fit = data.FitLogistic(
+    #         combinedInten, combinedResp,
+    #         # expectedMin=expectedMin,
+    #         expectedMin=0.0, # needs to be 0.0
+    #         sems=1.0 / combinedN,
+    #         #sems = 1.0,
+    #         # sems = np.sqrt((combinedResp * (1 - combinedResp)) / combinedN),
+    #         optimize_kws={'maxfev': int(1e6)}
+    #     )
+    #     thresh = fit.inverse(threshVal)
+    #     print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
+    #     return thresh
+    def getThresholdFromBase(self, file_path):
         thisDat = pd.read_csv(file_path)
         thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
 
         allIntensities = thisDat['TC'].tolist()
         allResponses = thisDat['response'].tolist()
 
-        i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
-        #print(f'Intensities: {i}, Responses: {r}, N: {n}') 
-        combinedInten, combinedResp, combinedN = i, r, n
-        combinedN = pylab.array(combinedN)
-        
+        i, r, n = data.functionFromStaircase(
+            allIntensities, allResponses, bins='unique'
+        )
+
+        combinedN = pylab.array(n)
+
         fit = data.FitLogistic(
-            combinedInten, combinedResp,
-            # expectedMin=expectedMin,
-            expectedMin=0.0, # needs to be 0.0
+            i, r,
+            expectedMin=0.0,      # important given your data range
             sems=1.0 / combinedN,
-            #sems = 1.0,
-            # sems = np.sqrt((combinedResp * (1 - combinedResp)) / combinedN),
             optimize_kws={'maxfev': int(1e6)}
         )
-        thresh = fit.inverse(threshVal)
-        print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
-        return thresh
+
+        probs = [0.10, 0.50, 0.99]
+        thresholds = {p: fit.inverse(p) for p in probs}
+
+        print(f'--- Thresholds [{self.id}, Baseline] ---')
+        for p, t in thresholds.items():
+            print(f'{int(p*100)}%: {t}')
+
+        return thresholds
 
         
     def reDoBase(self,thresh):
         m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold outside of expected range.\nTry again [y / n]?")
-        m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")
-        if thresh > 0.1 or thresh <= 0:
-            self.myWin.drawOrder(m_redo)
-            keys = event.waitKeys(keyList=['y','n'])
-            if keys:
-                for key in keys:
-                    if key == 'y':
-                        return True
-                    else:
-                        return False
-        else:
-            self.myWin.drawOrder(m_good)
-            event.waitKeys(keyList=['y','n'])
-            return False
+                                 text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\n\nTry again [y / n]?")
+        # m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
+        #                          text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")
+        # if thresh > 0.1 or thresh <= 0:
+        
+        self.myWin.drawOrder(m_redo)
+        keys = event.waitKeys(keyList=['y','n'])
+        if keys:
+            for key in keys:
+                if key == 'y':
+                    return True
+                else:
+                    return False
+
 
     def blinkDiode(self,t=2/60):
         # Defaults to two frames blink (at 60fps)
