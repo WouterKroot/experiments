@@ -61,10 +61,10 @@ class Experiment:
         for trial, condition in stairs:
             print(f"!!!!!!condition: {condition}")
             
-            targetIntensity = stairs.currentStaircase.intensity
+            targetIntensity = round(float(stairs.currentStaircase.intensity), 4)
             thisStimulus = condition['stim_key']
             thisLabel = condition['label'] 
-            flankerIntensity = stairs.currentStaircase.condition.get('FC', 0.0)
+            flankerIntensity = round(float(stairs.currentStaircase.condition.get('FC', 0.0)), 4)
 
             stimulus = self.myWin.stimuli[thisStimulus]
             for entry in stimulus['components']:
@@ -128,7 +128,7 @@ class Experiment:
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{targetIntensity},{thisResp},{thisRT}\n")
             self.dataFile.flush()
             
-            if not thisLabel.endswith("_null"): 
+            if not thisLabel.endswith("_null") and thisRT != 99: 
                 stairs.addResponse(thisResp) # Don't adjust the staircase for a null trial
            
             thisTrial += 1
@@ -375,7 +375,7 @@ class Experiment:
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
                 thisLabel = condition['label']
-                targetIntensity = currentStair.intensity
+                targetIntensity = round(float(currentStair.intensity), 4)
 
             print(f'--Label: {thisLabel}, target intensity: {targetIntensity}--')
             
@@ -395,7 +395,7 @@ class Experiment:
 
             # --- Prepare stimulus ---
             lines = []
-            flankerIntensity = currentStair.condition['FC']
+            flankerIntensity = round(float(currentStair.condition['FC']), 4)
             stim_key = condition['stim_key']
             stimulus = self.myWin.stimuli[stim_key]
 
@@ -539,8 +539,8 @@ class Experiment:
             optimize_kws={'maxfev': int(1e6)}
         )
 
-        probs = [0.10, 0.50, 0.99]
-        thresholds = {p: fit.inverse(p) for p in probs}
+        probs = [0.50, 0.70, 0.99]
+        thresholds = {p: round(fit.inverse(p), 4) for p in probs}
 
         print(f'--- Thresholds [{self.id}, Baseline] ---')
         for p, t in thresholds.items():

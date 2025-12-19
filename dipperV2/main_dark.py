@@ -15,9 +15,9 @@ from src.window import Window
 from src.experiment import Experiment
 import numpy as np
 
-is_test = True 
-tracker = False 
-run_baseline = False
+is_test = False 
+tracker = True 
+run_baseline = True
 #%% 
 sub_id = str(utils.SubNumber("subNum.txt"))
 # Eyetracking
@@ -80,7 +80,6 @@ nBlocks_base = expConfig["exp_blocks"]["baseline"]["n_blocks"]
 nullOdds = expConfig["fixed_params"]["nullOdds"]
 stepsizes = expConfig["fixed_params"]["step_sizes"]
     
-
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 if run_baseline:
@@ -99,9 +98,8 @@ if run_baseline:
         }
     ]
 
-    redo = True
-    tutorial_done = False 
-
+    redo = False
+    tutorial_done = True 
     while redo:
         baseline_T = Experiment(
             myWin, sub_id,
@@ -122,17 +120,19 @@ if run_baseline:
         myWin.intro_baseline()
         baseline_T.run_baseline()
 
-        thresholds = baseline_T.getThresholdFromBase(file_T)
-        T_10 = thresholds[0.10]
-        T_50 = thresholds[0.50]
-        T_99 = thresholds[0.99]
-
-
-        redo = baseline_T.reDoBase(T_50)
+        thresholds_T = baseline_T.getThresholdFromBase(file_T)
+        T_50 = thresholds_T[0.50]
+        T_70 = thresholds_T[0.70]
+        T_99 = thresholds_T[0.99]
+        print(f"[BASELINE] Target threshold = {T_70:.4f}")
+        redo = baseline_T.reDoBase(T_99)
         if redo:
             myWin.countdown()
-
-    print(f"[BASELINE] Target threshold = {T_50:.4f}")
+            
+    #if run_baseline == False:
+#    T_70 = -0.9784
+#    else:
+#        pass
 
     baselineFlankerCondition = [
         {
@@ -146,12 +146,12 @@ if run_baseline:
             'nReversals': 20,
             'nUp': 1,
             'nDown': 1,
-            'FC': T_50          
+            'FC': -0.988          
         }
     ]
 
-    redo = True
-    while redo:
+    redo_F = True
+    while redo_F:
         baseline_F = Experiment(
             myWin, sub_id,
             nTrials_base, nBlocks_base,
@@ -168,22 +168,20 @@ if run_baseline:
         baseline_F.run_baseline()
 
         thresholds_F = baseline_F.getThresholdFromBase(file_F)
-        F_10 = thresholds_F[0.10]
         F_50 = thresholds_F[0.50]
+        F_70 = thresholds_F[0.70]
         F_99 = thresholds_F[0.99]
 
-        redo = baseline_F.reDoBase(F_50)
+        redo_F = baseline_F.reDoBase(F_50)
 
-        if redo:
+        if redo_F:
             myWin.countdown()
 
-    print(f"[BASELINE] Single flanker threshold θ_F = {F_50:.4f}")
-
-    
+    print(f"[BASELINE] Triple flanker threshold = {F_50:.4f}")
 
     fc_levels = [
-        ("0", F_10), # TC at 10% percent detection of straight condition
-        ("1", F_50),
+        ("0", F_50), # TC at 10% percent detection of straight condition
+        ("1", F_70),
         ("2", F_99),
         ("3", F_99 / 2),
         ("4", 0.0),
@@ -237,7 +235,7 @@ for stim_key in stim_keys:
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],
                 "nDown": expConfig['fixed_params']["n_down"],
-                "FC": float(fc_value),              
+                "FC": round(float(fc_value), 4),              
                 "FC_label": fc_name                 
             }
             experimentConditions.append(condition)
