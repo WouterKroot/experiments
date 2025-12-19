@@ -1,7 +1,7 @@
 paths:
   base_output_dir: "./Output/"
   exp_output_dir: "Exp_dark"
-  test_output_dir: "Test"
+  test_output_dir: "Test_dark"
   baseline_name: "Baseline"
   main_name: "Main"
 

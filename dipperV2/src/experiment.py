@@ -454,7 +454,7 @@ class Experiment:
             # --- Log response ---
             self.eyeTracker.logResponse(thisResp, thisRT)
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{thisResp},{thisRT}\n")
-            #self.dataFile.flush()
+            self.dataFile.flush()
             
             # --- Add response only if not null ---
             if not isNull:
