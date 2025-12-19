@@ -59,10 +59,12 @@ class Experiment:
         thisTrial = 0
 
         for trial, condition in stairs:
+            print(f"!!!!!!condition: {condition}")
+            
             targetIntensity = stairs.currentStaircase.intensity
             thisStimulus = condition['stim_key']
             thisLabel = condition['label'] 
-            flankerIntensity = condition.get('FC', 0.0)
+            flankerIntensity = stairs.currentStaircase.condition.get('FC', 0.0)
 
             stimulus = self.myWin.stimuli[thisStimulus]
             for entry in stimulus['components']:
@@ -112,8 +114,18 @@ class Experiment:
             else:
                 thisResp = 0
                 thisRT = 99
+                
+            if thisRT == 99:
+                fb_stim = self.myWin.feedback_nan      
+            elif thisResp == 1:
+                fb_stim = self.myWin.feedback_yes     
+            else:
+                fb_stim = self.myWin.feedback_no       
 
-            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{stairs.currentStaircase.intensity},{thisResp},{thisRT}\n")
+            self.myWin.drawOrder(fb_stim)
+            core.wait(2/60)
+            
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{targetIntensity},{thisResp},{thisRT}\n")
             self.dataFile.flush()
             
             if not thisLabel.endswith("_null"): 
@@ -324,7 +336,6 @@ class Experiment:
         event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
         
     def run_main(self, dataFile):
-        print(self.myConds.keys()) 
         breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
         stairs = self.stairs
         totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials) # staircase trials
