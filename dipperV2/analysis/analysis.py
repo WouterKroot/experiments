@@ -28,15 +28,15 @@ test = False
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'
 data_path = this_file.parent.parent / 'Output'
-output_path = this_file.parent / 'Output' / 'dipperV2' / 'test'
+output_path = this_file.parent / 'Output' / 'dipperV2' / 'test_dark'
 
 if test == True:
     exp_path = data_path / 'Test2'
 else:
-    exp_path = data_path / 'Exp'
+    exp_path = data_path / 'Exp_dark'
     
-baseline_path = exp_path / 'Baseline_dark'
-main_path = exp_path / 'Main_dark'
+baseline_path = exp_path / 'Baseline'
+main_path = exp_path / 'Main'
 eyelink_path = data_path / 'Eyelink'
 
 #%%
@@ -220,7 +220,8 @@ for participant_id, dfs in participant_dfs.items():
     for cond in conditions:
         for mult in flanker_conditions:
             #Todo: check how to change the mult to be a string
-            key = f"{cond}_{mult}"
+            mult_str = str(int(mult))
+            key = f"{cond}_{mult_str}"
 
             if key not in thresholds[participant_id]:
                 continue

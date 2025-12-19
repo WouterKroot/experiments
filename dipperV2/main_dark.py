@@ -222,6 +222,7 @@ for stim_key in stim_keys:
         "FC": -1.0,
         "FC_label": None
         }
+        experimentConditions.append(condition)
             
     else:
         for fc_name, fc_value in fc_levels:
@@ -239,8 +240,7 @@ for stim_key in stim_keys:
                 "FC": float(fc_value),              
                 "FC_label": fc_name                 
             }
-
-    experimentConditions.append(condition)
+            experimentConditions.append(condition)
 
 print(f"[MAIN] Total conditions: {len(experimentConditions)}")
 
