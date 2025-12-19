@@ -146,7 +146,7 @@ if run_baseline:
             'nReversals': 20,
             'nUp': 1,
             'nDown': 1,
-            'FC': -0.988          
+            'FC': -0.985          
         }
     ]
 
@@ -235,7 +235,7 @@ for stim_key in stim_keys:
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],
                 "nDown": expConfig['fixed_params']["n_down"],
-                "FC": round(float(fc_value), 4),              
+                "FC": round(float(fc_value), 5),              
                 "FC_label": fc_name                 
             }
             experimentConditions.append(condition)
