@@ -180,15 +180,22 @@ for participant_id, dfs in participant_dfs.items():
     conditions = cleaned_df['condition'].unique()
     
     # build mapping: flanker_condition → FC
-    fc_map = (
-        cleaned_df
-        .dropna(subset=['flanker_condition', 'FC'])
-        .groupby('flanker_condition')['FC']
-        .nunique()
-    )
-    assert (fc_map == 1).all(), "Some flanker conditions map to multiple FC values!"
+    # fc_map = (
+    #     cleaned_df
+    #     .dropna(subset=['flanker_condition', 'FC'])
+    #     .groupby('flanker_condition')['FC']
+    #     .nunique()
+    # )
+    # #assert (fc_map == 1).all(), "Some flanker conditions map to multiple FC values!"
     
-    fc_map = (
+    # fc_map = (
+    # cleaned_df
+    # .dropna(subset=['flanker_condition', 'FC'])
+    # .groupby('flanker_condition')['FC']
+    # .first()
+    # .to_dict()
+    # )
+    fc_raw = (
     cleaned_df
     .dropna(subset=['flanker_condition', 'FC'])
     .groupby('flanker_condition')['FC']
@@ -196,10 +203,23 @@ for participant_id, dfs in participant_dfs.items():
     .to_dict()
     )
 
+    # sort flanker conditions (keys)
+    flanker_sorted = sorted(fc_raw.keys())
+
+    # sort FC values (lowest → highest)
+    fc_sorted = sorted(fc_raw.values())
+
+    # safety check
+    assert len(flanker_sorted) == len(fc_sorted), "Mismatch between flanker conditions and FC values"
+
+    # rebuild mapping: smallest flanker → lowest FC
+    fc_map = dict(zip(flanker_sorted, fc_sorted))
+
     flanker_conditions = sorted(fc_map.keys())
 
     for cond in conditions:
         for mult in flanker_conditions:
+            #Todo: check how to change the mult to be a string
             key = f"{cond}_{mult}"
 
             if key not in thresholds[participant_id]:

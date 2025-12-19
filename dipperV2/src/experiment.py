@@ -11,7 +11,7 @@ from utils import utils
 class Experiment:
     def __init__(self, win,
                  subject_id, nTrials, nBlocks, eyeTracker,
-                 expConfig, path, nullOdds, myConds, baseline_threshold):
+                 expConfig, path, nullOdds, myConds, fc_levels=None):
         self.myWin = win
         self.myConds = myConds
         self.id = subject_id
@@ -22,11 +22,11 @@ class Experiment:
         self.eyeTracker = eyeTracker
         self.path = path
         self.base_name = os.path.basename(path)
+        self.fc_levels = fc_levels
         self.stairs = data.MultiStairHandler(stairType='simple',
                                              method='random',
                                              nTrials=self.nTrials,
                                              conditions=self.myConds, originPath=self.path)
-        self.baseline_threshold = baseline_threshold
 
     def getBreaks(self):
         totalTrials = int(len(self.myConds) * self.nTrials * (1 + self.nullOdds))

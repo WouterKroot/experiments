@@ -248,7 +248,7 @@ if __name__ == "__main__":
         main_path,
         nullOdds,
         experimentConditions,
-        baseline_threshold=T_50
+        fc_levels=fc_levels
     )
 
     main_output = main.openDataFile()

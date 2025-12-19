@@ -170,7 +170,7 @@ def clean_df(df):
     # cleaned_df['condition'] = cleaned_df['label'].str.rsplit('_', n=1).str[0]
     
     # Need a condition for different participants (all have different FC values)
-    cleaned_df['flanker_condition'] = np.nan 
+    cleaned_df['flanker_condition'] = np.nan
     # # For non-targets, extract numeric suffix and convert to int
     # # mask = cleaned_df['label'] != 'target'
     mask = ~cleaned_df['label'].str.startswith('baseline', na=False) & (cleaned_df['label'] != 'target')
