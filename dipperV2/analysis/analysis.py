@@ -14,9 +14,9 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import statsmodels.graphics.api as smg
 from pathlib import Path
-import pylab
 import os
-from scipy.optimize import curve_fit
+from datetime import datetime
+
 # dynamic import
 this_file = Path(__file__).resolve()
 utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 then into utils
@@ -26,14 +26,17 @@ import utils
 test = False 
 #%%
 #Dynamic paths for data loading
-#output_path = this_file.parent.parent.parent.parent / 'Data'
-data_path = this_file.parent.parent / 'Output'
-output_path = this_file.parent / 'Output' / 'dipperV2' / 'test_dark'
+#results_path = this_file.parent.parent.parent.parent / 'Data'
+daystamp = datetime.now().strftime("%Y%m%d")
+timestamp = datetime.now().strftime("%H%M%S")   
+data_path = this_file.parent.parent / 'data' / 'dark_background'
+results_path = this_file.parent / 'results' / 'dark_background' / daystamp / timestamp
+os.makedirs(results_path, exist_ok=True)
 
 if test == True:
-    exp_path = data_path / 'Test2'
+    exp_path = data_path / 'Test'
 else:
-    exp_path = data_path / 'Exp_dark'
+    exp_path = data_path
     
 baseline_path = exp_path / 'Baseline'
 main_path = exp_path / 'Main'
@@ -74,7 +77,7 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['main'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.9, n_bins=40) # Size of the smallest log stepsize, is 0.0025
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=1.0, n_bins=40) # Size of the smallest log stepsize, is 0.0025
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
@@ -91,8 +94,8 @@ for participant_id, dfs in participant_dfs.items():
     fit_results[participant_id] = {}
     thresholds[participant_id] = {}
 
-    participant_output_path = os.path.join(output_path, str(participant_id))
-    os.makedirs(participant_output_path, exist_ok=True)
+    participant_results_path = os.path.join(results_path, str(participant_id))
+    os.makedirs(participant_results_path, exist_ok=True)
 
     for label_name, df_label in response_summary.items():
         if label_name not in thresholds[participant_id]:
@@ -156,7 +159,7 @@ for participant_id, dfs in participant_dfs.items():
         
 
         safe_label = label_name.replace("/", "_").replace("\\", "_")
-        save_path = os.path.join(participant_output_path, f"{safe_label}.png")
+        save_path = os.path.join(participant_results_path, f"{safe_label}.png")
         plt.savefig(save_path, dpi=300)
         plt.show()
         plt.close()
@@ -283,7 +286,7 @@ for participant_id, dfs in participant_dfs.items():
     plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()
     plt.grid(True)
-    save_path = os.path.join(participant_output_path, f"participant_{participant_id}_thresholds_by_condition.png")
+    save_path = os.path.join(participant_results_path, f"participant_{participant_id}_thresholds_by_condition.png")
     plt.savefig(save_path, dpi=300)
     plt.show()
     
@@ -321,6 +324,6 @@ plt.ylabel("Mean Adjusted Threshold (0.7)")
 plt.title("Mean Thresholds Across Participants by Condition")
 plt.legend()
 plt.grid(True)
-plt.savefig(os.path.join(output_path, "mean_thresholds_by_condition.png"), dpi=300)
+plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
 # %%

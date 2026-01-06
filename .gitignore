@@ -1,4 +1,5 @@
 # Ignore data and sensitive stuff
+analysis/results/
 Output/
 participants/
 backup/
@@ -6,4 +7,10 @@ backup/
 *.csv
 *.log
 *.edf
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.zip
+
 .DS_Store

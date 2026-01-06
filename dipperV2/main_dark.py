@@ -13,7 +13,7 @@ import numpy as np
 import random
 
 # Set up settings for experiment:
-is_test = True 
+is_test = False 
 
 if is_test:
     tracker = False 
@@ -21,7 +21,7 @@ if is_test:
     tutorial_done = True   
     sub_id = "000"
 else:
-    tracker = True 
+    tracker = False #True 
     run_baseline = True
     tutorial_done = False
     sub_id = str(utils.SubNumber("subNum.txt"))
@@ -52,7 +52,7 @@ print(f"Using config: {default_config_path}")
 base_dir = expConfig["paths"]["base_output_dir"]
 
 if is_test == True:
-    baseline_path = os.path.join(base_dir, expConfig["paths"]["test_output_dir"], expConfig["paths"]["baseline_name"],f"{sub_id}_baseline")
+    baseline_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"],expConfig["paths"]["test_output_dir"], expConfig["paths"]["baseline_name"],f"{sub_id}_baseline")
     main_path = os.path.join(base_dir, expConfig["paths"]["test_output_dir"], expConfig["paths"]["main_name"], f"{sub_id}_main")
     fullscr = False
     nTrials_base = expConfig["exp_blocks"]["baseline"]["test_trials"]
@@ -70,11 +70,12 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 stepsizes = expConfig["fixed_params"]["step_sizes"]
     
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
-background_colour = expConfig["fixed_params"]["background_colour"]
 min_val = expConfig["fixed_params"]["min_val"]
 max_val = expConfig["fixed_params"]["max_val"]
 start_val = expConfig["fixed_params"]["start_val"]
 reversals = expConfig["fixed_params"]["reversals"]
+
+background_colour = (min_val, min_val, min_val)
 
 window = visual.Window(fullscr= fullscr,
                        monitor="Flanders", 
@@ -255,7 +256,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": round(start_val + random.uniform(-0.2, 0.2), 4),
+                "startVal": round(start_val + random.uniform(-0.3, 0.3), 4),
                 "maxVal": expConfig['fixed_params']["max_val"],
                 "minVal": expConfig['fixed_params']["min_val"],
                 "stepSizes": expConfig['fixed_params']["step_sizes"],
@@ -286,7 +287,5 @@ if __name__ == "__main__":
     main_output = main.openDataFile()
     myWin.intro_experiment()
     main.run_main(main_output)
-
-#%%
 
 # %%
