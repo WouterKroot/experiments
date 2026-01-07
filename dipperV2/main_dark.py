@@ -17,11 +17,11 @@ is_test = False
 
 if is_test:
     tracker = False 
-    run_baseline = True
+    run_baseline = False
     tutorial_done = True   
     sub_id = "000"
 else:
-    tracker = False #True 
+    tracker = True 
     run_baseline = True
     tutorial_done = False
     sub_id = str(utils.SubNumber("subNum.txt"))
@@ -90,6 +90,7 @@ myWin = Window(window, expConfig)
 myWin.stimuli = utils.load_stimuli(myWin)
 
 #%%
+baseline_thresholds = None
 if run_baseline:
     baselineTargetCondition = [
         {
@@ -216,7 +217,7 @@ if baseline_thresholds is None:
     T_70 = baseline_thresholds[0.70]
     T_99 = baseline_thresholds[0.99]
     print(f"No baseline thresholds found, using default T_50: {T_50})")
-    raise ValueError("No baseline thresholds found.")
+    #raise ValueError("No baseline thresholds found.")
 
 
 experimentConditions = []
