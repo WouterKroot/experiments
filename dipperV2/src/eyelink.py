@@ -7,12 +7,12 @@ import pylink
 class EyeTracker:
     def __init__(self,id,
                  ip = "100.1.1.2:255.255.255.0",
-                 doTracking = True):
+                 doTracking = True, exp_dir = None):
         self.id = id
         self.ip = ip
         self.doTracking = doTracking
         self.eyeHostFile = str(self.id)+'.edf'
-        self.eyeLocalFile = "./Output/EyeLink/"+self.eyeHostFile
+        self.eyeLocalFile = exp_dir+"/EyeLink/"+self.eyeHostFile
         os.makedirs(os.path.dirname(self.eyeLocalFile), exist_ok=True)
 
     def startTracker(self):  

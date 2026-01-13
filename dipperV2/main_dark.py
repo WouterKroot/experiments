@@ -22,18 +22,11 @@ if is_test:
     sub_id = "000"
 else:
     tracker = True 
-    run_baseline = True
-    tutorial_done = False
+    run_baseline = False
+    tutorial_done = True
     sub_id = str(utils.SubNumber("subNum.txt"))
     
 #%% 
-
-# Eyetracking
-if tracker == True:
-    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=True)
-    eye_tracker.startTracker()
-else:
-    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=False)
 
 #%% Load configuration
 default_config_dir = "./config"
@@ -50,6 +43,7 @@ print(f"Using config: {default_config_path}")
 
 # get output path
 base_dir = expConfig["paths"]["base_output_dir"]
+exp_dir = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"])
 
 if is_test == True:
     baseline_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"],expConfig["paths"]["test_output_dir"], expConfig["paths"]["baseline_name"],f"{sub_id}_baseline")
@@ -77,6 +71,13 @@ reversals = expConfig["fixed_params"]["reversals"]
 
 background_colour = (min_val, min_val, min_val)
 
+# Eyetracking
+if tracker == True:
+    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=True, exp_dir=exp_dir)
+    eye_tracker.startTracker()
+else:
+    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=False, exp_dir=None)
+    
 window = visual.Window(fullscr= fullscr,
                        monitor="Flanders", 
                        units="pix",
