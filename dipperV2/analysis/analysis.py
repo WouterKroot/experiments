@@ -47,6 +47,7 @@ baseline_df = utils.load_data(baseline_path)
 main_df = utils.load_data(main_path)
 #%% 
 ids = main_df['id'].unique()
+#ids = [1126]
 print(f"Found {len(ids)} participant(s): {ids}")
 
 labels = main_df['label'].unique()
@@ -77,7 +78,7 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['main'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=1.0, n_bins=40) # Size of the smallest log stepsize, is 0.0025
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=1.0, n_bins=30) # Size of the smallest log stepsize, is 0.0025
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
@@ -320,10 +321,59 @@ for cond in df_mean['condition'].unique():
 plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
 plt.xlabel("FC")
 plt.ylabel("Mean Adjusted Threshold (0.7)")
-#plt.xlim(0, 0.2)
+#plt.xlim(-0.9, -0.7)
+
+fine_ticks = np.arange(-0.9, -0.8 + 0.01, 0.01)
+# Coarse intervals from -0.8 to 1.0 (every 0.2)
+coarse_ticks = np.arange(-0.8, 1.0 + 0.2, 0.2)
+# Combine them (removing duplicate -0.8)
+all_ticks = np.concatenate([fine_ticks, coarse_ticks[1:]])
+plt.xticks(all_ticks)
+
 plt.title("Mean Thresholds Across Participants by Condition")
+plt.legend()
+plt.grid(True)
+#plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
+plt.show()
+# %%
+# Normalize FC to 0-100% based on min and max values
+df_mean = (
+    agg_plot_df.groupby(['condition', 'flanker'])
+          .agg(mean_threshold=('threshold07', 'mean'),
+               std_threshold=('threshold07', 'std'),
+               n=('threshold07', 'count'),
+               mean_FC=('FC', 'mean'),
+               mean_target=('target07', 'mean'))
+          .reset_index()
+)
+df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
+
+# Normalize with -0.9 as baseline (0%) and 1.0 as max (100%)
+baseline = -0.9
+maximum = 1.0
+df_mean['mean_FC_pct'] = ((df_mean['mean_FC'] - baseline) / (maximum - baseline)) * 100
+
+plt.figure(figsize=(8,6))
+for cond in df_mean['condition'].unique():
+    sub = df_mean[df_mean['condition'] == cond]
+    plt.errorbar( 
+        sub['mean_FC_pct'],
+        sub['mean_threshold'],
+        yerr=sub['sem'],
+        marker='o',
+        capsize=3,
+        label=cond
+    )
+
+plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
+plt.xlabel("FC (%, normalized from -0.9)")
+plt.ylabel("Mean Adjusted Threshold (0.7)")
+plt.xscale('log')
+plt.xlim(0.8, 100)  # Start slightly above 0 for log scale
+plt.title("Normalized Mean Thresholds Across Participants by Condition")
 plt.legend()
 plt.grid(True)
 plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
+
 # %%
