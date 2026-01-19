@@ -6,6 +6,7 @@ import yaml
 from utils import utils
 from psychopy import core, visual, data, event, monitors, logging
 import src.eyelink as eyelink
+import src.eyelink_dummy as eyelink_dummy
 from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
@@ -19,11 +20,11 @@ if is_test:
     tracker = False 
     run_baseline = False
     tutorial_done = True   
-    sub_id = "000"
+    sub_id = str(0)
 else:
     tracker = True 
-    run_baseline = False
-    tutorial_done = True
+    run_baseline = True
+    tutorial_done = False
     sub_id = str(utils.SubNumber("subNum.txt"))
     
 #%% 
@@ -76,7 +77,7 @@ if tracker == True:
     eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=True, exp_dir=exp_dir)
     eye_tracker.startTracker()
 else:
-    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=False, exp_dir=None)
+    eye_tracker = eyelink_dummy.DummyEyeTracker(id=sub_id, doTracking=False, exp_dir=None)
     
 window = visual.Window(fullscr= fullscr,
                        monitor="Flanders", 
