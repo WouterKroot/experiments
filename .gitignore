@@ -2,8 +2,13 @@
 Output/
 participants/
 backup/
+results/
 *.psydat
 *.csv
 *.log
 *.edf
+*.png
+*.jpg
+*.jpeg
 .DS_Store
+
