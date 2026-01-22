@@ -36,6 +36,9 @@ exp_blocks:
     n_blocks: 2 #10 #7
 
     flanker_conditions:
+      - label: "25"
+        FC_factor: 0.25
+
       # - label: "50"
       #   FC_factor: 0.5
       # - label: "75"
