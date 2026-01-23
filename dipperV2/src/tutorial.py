@@ -2,6 +2,9 @@ from psychopy import visual, core, event  # import some libraries from PsychoPy
 from psychopy.data import MultiStairHandler
 from psychopy.hardware import keyboard
 
+background_val = -0.5  # define background color value
+stimulus_val = 0.5    # define stimulus color value
+
 myWin = visual.Window([800,600], monitor="testMonitor", units="deg")
 text = visual.TextStim(myWin, color='white', text =  "Welcome to the Tutorial.\n \nTo begin, press the right arrow.")
 text.draw()

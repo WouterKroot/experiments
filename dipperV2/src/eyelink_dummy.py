@@ -1,7 +1,8 @@
 class DummyEyeTracker:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, doTracking = False, exp_dir=None, *args, **kwargs):
         print("Dummy eye tracker initialized (tracking disabled)")
-
+        self.doTracking = doTracking
+    
     def startTracker(self):
         print("Started tracking")
         

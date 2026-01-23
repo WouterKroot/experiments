@@ -22,7 +22,7 @@ def load_config(file_path):
         config_dict = yaml.load(f, Loader=yaml.FullLoader)
     return config_dict
 
-def create_line(win, pos=(0, 0), angle=90, length=40):
+def create_line(Win, pos=(0, 0), angle=90, length=40):
     end1 = (
         pos[0] - math.cos(math.radians(angle)) * length / 2,
         pos[1] - math.sin(math.radians(angle)) * length / 2
@@ -31,10 +31,37 @@ def create_line(win, pos=(0, 0), angle=90, length=40):
         pos[0] + math.cos(math.radians(angle)) * length / 2,
         pos[1] + math.sin(math.radians(angle)) * length / 2
     )
-    return visual.Line(win, start=end1, end=end2, lineColor='white', lineWidth=3.5)
+    # bg = np.mean(win.color) #bg is the color of the window
+    # line_color = -np.sign(bg) # line_color is the opposite of the window, but needs a min, max in -1 to 1 range
+    
+    # if line_color == 0: # the np.sign is 0 when bg is 0, make the line black in that case
+    #     line_color = -1.0   
+        
+    # line_color = [line_color] * 3 # make it RGB
+    return visual.Line(Win.win, start=end1, end=end2, lineColor= Win.stimulus_colour, lineWidth=3.5)
+
+def abs_contrast_from_bg(stim, bg):
+    """
+    Convert a stimulus intensity (stim) to absolute contrast relative to background.
+    stim: scalar or array-like, stimulus intensity in [-1, 1]
+    bg: background intensity (-1 or 1)
+    
+    Returns: absolute contrast [0, 1]
+    """
+    stim = np.asarray(stim, dtype=float)
+    bg = float(bg)
+    return np.abs(stim - bg) / (1 - np.abs(bg))
+
+def stim_from_abs_contrast(abs_contrast, bg):
+    """
+    Convert absolute contrast [0,1] back to stimulus intensity for drawing
+    """
+    abs_contrast = np.clip(abs_contrast, 0, 1)
+    return bg + abs_contrast * np.sign(-bg) * (1 - abs(bg))
+
 
 def load_stimuli(myWin):
-    win = myWin.win
+    Win = myWin
     stim_dict = myWin.expConfig['stimuli']
 
     processed_stimuli = {}
@@ -43,7 +70,7 @@ def load_stimuli(myWin):
         for entry in stim_list:
             if entry['object'] == 'line':
                 line_obj = create_line(
-                    win=win,
+                    Win=Win,
                     pos=tuple(entry.get('pos', (0, 0))),
                     angle=entry.get('angle', 90),
                     length=entry.get('length', 100),

@@ -33,5 +33,5 @@ class Stimulus:
 
         self.fixation = visual.GratingStim(win=win, color=1, colorSpace='rgb', tex=None, mask='circle', size=0.1)
         self.blank = visual.TextStim(win=win, text="You should not see this", color=win.color, colorSpace='rgb')
-        self.diode = visual.GratingStim(win=win, color='black', colorSpace='rgb', tex=None, mask='circle', units='pix', size=80, pos=[-780, -440], autoDraw=True)
+        #self.diode = visual.GratingStim(win=win, color='black', colorSpace='rgb', tex=None, mask='circle', units='pix', size=80, pos=[-780, -440], autoDraw=True)
         

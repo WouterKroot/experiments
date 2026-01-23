@@ -6,23 +6,24 @@ import yaml
 from utils import utils
 from psychopy import core, visual, data, event, monitors, logging
 import src.eyelink as eyelink
-from src.stimulus import Stimulus
+import src.eyelink_dummy as eyelink_dummy
+#from src.stimulus import Stimulus
 from src.window import Window
 from src.experiment import Experiment
 import numpy as np
 import random
 
 # Set up settings for experiment:
-is_test = False 
+is_test = True 
 
 if is_test:
     tracker = False 
-    run_baseline = False
+    run_baseline = True 
     tutorial_done = True   
     sub_id = "000"
 else:
     tracker = True 
-    run_baseline = False
+    run_baseline = True 
     tutorial_done = True
     sub_id = str(utils.SubNumber("subNum.txt"))
     
@@ -64,19 +65,24 @@ nullOdds = expConfig["fixed_params"]["nullOdds"]
 stepsizes = expConfig["fixed_params"]["step_sizes"]
     
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
-min_val = expConfig["fixed_params"]["min_val"]
-max_val = expConfig["fixed_params"]["max_val"]
+
+background_val = expConfig["fixed_params"]["background_val"]
+# min_val = expConfig["fixed_params"]["min_val"]
+# max_val = expConfig["fixed_params"]["max_val"]
+min
+
 start_val = expConfig["fixed_params"]["start_val"]
 reversals = expConfig["fixed_params"]["reversals"]
 
-background_colour = (min_val, min_val, min_val)
+background_colour = (background_val, background_val, background_val)
 
 # Eyetracking
 if tracker == True:
     eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=True, exp_dir=exp_dir)
     eye_tracker.startTracker()
 else:
-    eye_tracker = eyelink.EyeTracker(id=sub_id, doTracking=False, exp_dir=None)
+    eye_tracker = eyelink_dummy.DummyEyeTracker(id=sub_id, doTracking=False, exp_dir=None)
+
     
 window = visual.Window(fullscr= fullscr,
                        monitor="Flanders", 
@@ -86,12 +92,14 @@ window = visual.Window(fullscr= fullscr,
                        bpc=(10,10,10),
                        depthBits=10
                        )
+print(f"Background colour: {window.color}")
 
 myWin = Window(window, expConfig)
 myWin.stimuli = utils.load_stimuli(myWin)
 
 #%%
 baseline_thresholds = None
+
 if run_baseline:
     baselineTargetCondition = [
         {
@@ -118,8 +126,7 @@ if run_baseline:
             baseline_path,
             nullOdds,
             baselineTargetCondition,
-            min_val,
-            baseline_thresholds=None
+            baseline_thresholds = None
         )
 
         file_T = baseline.openDataFile()
@@ -130,13 +137,17 @@ if run_baseline:
 
         myWin.intro_baseline()
         baseline.run_baseline()
-        baseline_thresholds = baseline.getThresholdFromBase(file_T)
+        baseline_thresholds_norm, baseline_thresholds = baseline.getThresholdFromBase(file_T)
 
+        T_50_norm = baseline_thresholds_norm[0.50]
+        T_70_norm = baseline_thresholds_norm[0.70]
+        T_99_norm = baseline_thresholds_norm[0.99]
+        
         T_50 = baseline_thresholds[0.50]
         T_70 = baseline_thresholds[0.70]
         T_99 = baseline_thresholds[0.99]
 
-        print(f"[BASELINE] Target threshold = {T_50:.4f}")
+        print(f"[BASELINE] Target threshold = {T_50:.8f}")
         redo = baseline.reDoBase(T_50)
         if redo:
             myWin.countdown()
@@ -158,7 +169,7 @@ if run_baseline:
 #             'nReversals': 20,
 #             'nUp': 1,
 #             'nDown': 1,
-#             'FC': -0.985          
+#             'FV': -0.985          
 #         }
 #     ]
 
@@ -192,7 +203,7 @@ if run_baseline:
 #     print(f"[BASELINE] Triple flanker threshold = {F_50:.4f}")
 
 #     fc_levels = [
-#         ("0", F_50), # TC at 10% percent detection of straight condition
+#         ("0", F_50), # TV at 10% percent detection of straight condition
 #         ("1", F_70),
 #         ("2", F_99),
 #         ("3", F_99 / 2),
@@ -201,7 +212,7 @@ if run_baseline:
 #     ]
 # else:
 #     fc_levels = [
-#     ("0", -0.99), # TC at 10% percent detection of straight condition
+#     ("0", -0.99), # TV at 10% percent detection of straight condition
 #     ("1", -0.98),
 #     ("2", -0.97),
 #     ("3", -0.5),
@@ -214,15 +225,23 @@ if run_baseline:
 
 if baseline_thresholds is None:
     baseline_thresholds = {0.5: -0.75, 0.7: -0.70, 0.99: -0.65}
+    baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
+    
     T_50 = baseline_thresholds[0.50]
     T_70 = baseline_thresholds[0.70]
     T_99 = baseline_thresholds[0.99]
+
+    T_50_norm = baseline_thresholds_norm[0.50]
+    T_70_norm = baseline_thresholds_norm[0.70]
+    T_99_norm = baseline_thresholds_norm[0.99]
+
     print(f"No baseline thresholds found, using default T_50: {T_50})")
     #raise ValueError("No baseline thresholds found.")
 
 
 experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
+bg = myWin.background_val
 
 for stim_key in stim_keys:
     if stim_key == "target":
@@ -230,15 +249,15 @@ for stim_key in stim_keys:
         condition = {
         "label": f"{stim_key}",
         "stim_key": stim_key,
-        "startVal": start_val,
-        "maxVal": expConfig['fixed_params']["max_val"],
-        "minVal": expConfig['fixed_params']["min_val"],
+        "startVal": start_val, 
+        "maxVal": max_val,
+        "minVal": min_val,
         "stepSizes": expConfig['fixed_params']["step_sizes"],
         "stepType": expConfig['fixed_params']["step_type"],
         "nReversals": expConfig['fixed_params']["reversals"],
         "nUp": expConfig['fixed_params']["n_up"],
         "nDown": expConfig['fixed_params']["n_down"],
-        "FC": min_val,
+        "FC": background_val,
         }
         experimentConditions.append(condition)
             
@@ -247,20 +266,24 @@ for stim_key in stim_keys:
             label = cond['label']
             factor = cond['FC_factor']
             
-            if factor > 10:
-                fc_value = 1.0
+            if factor > 20:
+                #fc_value = -1.0
+                fc_value = np.mean(myWin.stimulus_colour)
                 print(f"Factor > 10 so baseline: {T_50}, fc_value: {fc_value}")
             else:
-                fc_value = np.clip(min_val + (abs(T_50 - min_val) * factor), min_val, max_val)
+                #fc_value = np.clip(background_val + (abs(T_50 - background_val) * factor), -abs(background_val), abs(background_val))
+                delta_50 = T_50 - background_val
+                fc_value = background_val + factor * delta_50
+                fc_value = np.clip(fc_value, -1.0, 1.0)
                 
             print(f"{stim_key}, {label}, {fc_value}")
             
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": round(start_val + random.uniform(-0.3, 0.3), 4),
-                "maxVal": expConfig['fixed_params']["max_val"],
-                "minVal": expConfig['fixed_params']["min_val"],
+                "startVal": round(start_val + random.uniform(-0.3, 0.3), 8),
+                "maxVal": max_val,
+                "minVal": min_val,
                 "stepSizes": expConfig['fixed_params']["step_sizes"],
                 "stepType": expConfig['fixed_params']["step_type"],
                 "nReversals": expConfig['fixed_params']["reversals"],
@@ -273,6 +296,8 @@ for stim_key in stim_keys:
 
 print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentConditions}")
 
+
+
 if __name__ == "__main__":
     main = Experiment(
         myWin, sub_id,
@@ -282,7 +307,6 @@ if __name__ == "__main__":
         main_path,
         nullOdds,
         experimentConditions,
-        min_val,
         baseline_thresholds
     )
 

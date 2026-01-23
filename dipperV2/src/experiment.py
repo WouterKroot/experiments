@@ -11,7 +11,7 @@ from utils import utils
 class Experiment:
     def __init__(self, win,
                  subject_id, nTrials, nBlocks, eyeTracker,
-                 expConfig, path, nullOdds, myConds, min_val, baseline_thresholds=None):
+                 expConfig, path, nullOdds, myConds, baseline_thresholds=None):
         self.myWin = win
         self.myConds = myConds
         self.id = subject_id
@@ -23,7 +23,6 @@ class Experiment:
         self.path = path
         self.base_name = os.path.basename(path)
         self.baseline_threshold = baseline_thresholds
-        self.min_val = min_val
         self.stairs = data.MultiStairHandler(stairType='simple',
                                              method='random',
                                              nTrials=self.nTrials,
@@ -47,8 +46,10 @@ class Experiment:
             fileName = os.path.join(self.path, f"{self.base_name}_{count}.csv")
             count += 1
 
+        print(f"CSV file opened at: {fileName}")
+        
         self.dataFile = open(fileName, 'w', buffering=1)  # line-buffered
-        self.dataFile.write("id,trial,label,FC,TC,response,RT\n")
+        self.dataFile.write("id,trial,label,FC,TC,FN,TN,response,RT\n")
 
         
         return fileName
@@ -58,14 +59,18 @@ class Experiment:
         stairs = self.stairs
         trialClock = core.Clock()
         thisTrial = 0
+        bg = self.myWin.background_val
 
         for trial, condition in stairs:
-            print(f"!!!!!!condition: {condition}")
+            print(f"Condition: {condition}")
             
-            targetIntensity = round(float(stairs.currentStaircase.intensity), 4)
+            targetIntensity = round(float(stairs.currentStaircase.intensity), 8)
             thisStimulus = condition['stim_key']
             thisLabel = condition['label'] 
-            flankerIntensity = round(float(stairs.currentStaircase.condition.get('FC', 0.0)), 4)
+            flankerIntensity = round(float(stairs.currentStaircase.condition.get('FC', 0.0)), 8)
+
+            targetContrast = utils.abs_contrast_from_bg(targetIntensity, bg)
+            flankerContrast = utils.abs_contrast_from_bg(flankerIntensity, bg)
 
             stimulus = self.myWin.stimuli[thisStimulus]
             for entry in stimulus['components']:
@@ -126,7 +131,7 @@ class Experiment:
             self.myWin.drawOrder(fb_stim)
             core.wait(2/60)
             
-            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{targetIntensity},{thisResp},{thisRT}\n")
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{targetIntensity},{flankerContrast},{targetContrast},{thisResp},{thisRT}\n")
             self.dataFile.flush()
             
             if not thisLabel.endswith("_null") and thisRT != 99: 
@@ -143,7 +148,7 @@ class Experiment:
     def compute_break_stats(self):
         # df = pd.read_csv(
         #     self.dataFile,
-        #     names=['id','trial','label','FC','intensity','response','RT']
+        #     names=['id','trial','label','FV','intensity','response','RT']
         # )
         self.dataFile.flush()
         df = pd.read_csv(os.path.join(self.path, f"{self.id}_main.csv"))
@@ -179,7 +184,7 @@ class Experiment:
         )
         
         if middle:
-            m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
+            m_break = visual.TextStim(self.myWin.win, color=self.myWin.stimulus_colour, height = 32, wrapWidth=600,
                         text= (
                 f"You have finished block {b+1}.\n\n"
                 f"{rt_text}\n"
@@ -194,7 +199,7 @@ class Experiment:
             self.myWin.countdown()
             
         else:
-            m_break = visual.TextStim(self.myWin.win, color='white', height = 32, wrapWidth=600,
+            m_break = visual.TextStim(self.myWin.win, color=self.myWin.stimulus_colour, height = 32, wrapWidth=600,
                                     text=(f"You have finished block {b+1}.\nTime for a break. \nYou can stretch your legs or get some water.\nWait a bit before continuing.\n"
                                     "Press [RIGHT] to continue.\n\n"
                                     f"{rt_text}\n"
@@ -207,7 +212,7 @@ class Experiment:
     def run_tutorial(self):
         win = self.myWin.win  
 
-        def show_text(msg, wait_keys=['right', 'num_6'], color='white'):
+        def show_text(msg, wait_keys=['right', 'num_6'], color=self.myWin.stimulus_colour):
             text = visual.TextStim(win, color=color, text=msg)
             text.draw(); win.flip()
             event.waitKeys(keyList=wait_keys)
@@ -227,9 +232,9 @@ class Experiment:
             "To continue, press the right arrow."
         )
 
-        top = visual.line.Line(win=self.myWin.win, start=(0, 30), end=(0, 70), pos=(0, 60), ori=0.0, contrast=1.0, color=-1)
-        middle = visual.line.Line(win=self.myWin.win, start=(0, -20), end=(0, 20), pos=(0, 0), ori=0.0, contrast=1.0, color=-1)
-        bottom = visual.line.Line(win=self.myWin.win, start=(0, -70), end=(0, -30), pos=(0, -60), ori=0.0, contrast=1.0, color=-1)
+        top = visual.line.Line(win=self.myWin.win, start=(0, 30), end=(0, 70), pos=(0, 60), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
+        middle = visual.line.Line(win=self.myWin.win, start=(0, -20), end=(0, 20), pos=(0, 0), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
+        bottom = visual.line.Line(win=self.myWin.win, start=(0, -70), end=(0, -30), pos=(0, -60), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
         red_circle = visual.Circle(win=self.myWin.win, fillColor=None, radius=35, lineColor='red', lineWidth=3)
 
         self.myWin.drawOrder(self.myWin.fixation)
@@ -350,6 +355,8 @@ class Experiment:
         thisTrial = 0         # counts all displayed trials (including nulls)
         stairTrialCount = 0   # counts only trials added to staircase
 
+        bg = self.myWin.background_val
+        
         # Loop until all staircase trials are completed
         while stairTrialCount < totalStaircaseTrials: 
             self.myWin.checkQuit()
@@ -370,15 +377,15 @@ class Experiment:
                 condition = currentStair.condition
                 thisLabel = condition['label']
                 thisLabel += '_null'
-                targetIntensity = self.min_val
+                targetIntensity = None # background (invisible)
             else:
                 stairs.next()  
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
                 thisLabel = condition['label']
-                targetIntensity = round(float(currentStair.intensity), 4)
+                targetIntensity = float(currentStair.intensity)
 
-            print(f'--Label: {thisLabel}, target intensity: {targetIntensity}--')
+            
             
             # --- Handle breaks ---
             if thisTrial in breaks:
@@ -396,17 +403,40 @@ class Experiment:
 
             # --- Prepare stimulus ---
             lines = []
-            flankerIntensity = round(float(currentStair.condition['FC']), 4)
+            flankerIntensity = round(float(currentStair.condition['FC']), 8)
             stim_key = condition['stim_key']
             stimulus = self.myWin.stimuli[stim_key]
+            
+            targetContrast = utils.abs_contrast_from_bg(targetIntensity, bg)
+            flankerContrast = utils.abs_contrast_from_bg(flankerIntensity, bg)
 
+            # for entry in stimulus['components']:
+            #     if entry.get('type') == 'target':
+            #         entry['line_obj'].contrast = targetIntensity
+            #     else:
+            #         entry['line_obj'].contrast = flankerIntensity
+            #     lines.append(entry['line_obj'])
+            
+            lines = []
             for entry in stimulus['components']:
-                if entry.get('type') == 'target':
-                    entry['line_obj'].contrast = targetIntensity
+                # Determine if this is the target or a flanker
+                is_target = entry.get('type') == 'target'
+
+                # --- Null trial: target should be invisible ---
+                if isNull and is_target:
+                     entry['line_obj'].lineColor = None  # exact background
                 else:
-                    entry['line_obj'].contrast = flankerIntensity
+                    # Normal trial or flanker: assign proper contrast
+                    if is_target:
+                        #entry['line_obj'].lineColor = self.myWin.stimulus_colour
+                        entry['line_obj'].contrast = targetIntensity
+                    else:
+                        #entry['line_obj'].lineColor = self.myWin.stimulus_colour
+                        entry['line_obj'].contrast = flankerIntensity
+
                 lines.append(entry['line_obj'])
 
+            print(f'Label: {thisLabel}, target intensity: {targetIntensity}, flanker intensity: {flankerIntensity}, target contrast: {targetContrast}, flanker contrast: {flankerContrast}')
             # --- Draw fixation ---
             self.myWin.diode.color *= -1
             self.myWin.drawOrder(self.myWin.fixation)
@@ -454,7 +484,7 @@ class Experiment:
             
             # --- Log response ---
             self.eyeTracker.logResponse(thisResp, thisRT)
-            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{thisResp},{thisRT}\n")
+            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{flankerContrast},{targetContrast},{thisResp},{thisRT}\n")
             self.dataFile.flush()
             
             # --- Add response only if not null ---
@@ -493,14 +523,14 @@ class Experiment:
         psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
         stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
-    # def getThresholdFromBase(self, file_path): #worked previously, but since min val is -1 the fit is -inf
-    #     threshVal = 0.5 #50% correct for 2AFC, TC
-    #     #expectedMin = 0.5 #2AFC normally min is expected 0.5
+    # def getThresholdFromBase(self, file_path): #worked previously with 0 background, but since min val is -1 the fit is -inf
+    #     threshVal = 0.5 #50% correct for 2AFV, TV
+    #     #expectedMin = 0.5 #2AFV normally min is expected 0.5
 
     #     thisDat = pd.read_csv(file_path)
     #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
 
-    #     allIntensities = thisDat['TC'].tolist()
+    #     allIntensities = thisDat['TV'].tolist()
     #     allResponses = thisDat['response'].tolist()
 
     #     i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
@@ -520,38 +550,90 @@ class Experiment:
     #     thresh = fit.inverse(threshVal)
     #     print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
     #     return thresh
+    # def getThresholdFromBase(self, file_path): #worked with dark background
+    #     thisDat = pd.read_csv(file_path)
+    #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
+
+    #     allIntensities = thisDat['TV'].tolist()
+    #     allResponses = thisDat['response'].tolist()
+
+    #     i, r, n = data.functionFromStaircase(
+    #         allIntensities, allResponses, bins='unique'
+    #     )
+
+    #     combinedN = pylab.array(n)
+
+    #     fit = data.FitLogistic(
+    #         i, r,
+    #         expectedMin=0.0,      # important given your data range
+    #         sems=1.0 / combinedN,
+    #         optimize_kws={'maxfev': int(1e6)}
+    #     )
+
+    #     probs = [0.50, 0.70, 0.99]
+    #     thresholds = {p: round(fit.inverse(p), 4) for p in probs}
+
+    #     print(f'--- Thresholds [{self.id}, Baseline] ---')
+    #     for p, t in thresholds.items():
+    #         print(f'{int(p*100)}%: {t}')
+
+    #     return thresholds
     def getThresholdFromBase(self, file_path):
+        """
+        Fit psychometric function on absolute contrast relative to background.
+        
+        Parameters
+        ----------
+        file_path : str
+            CSV with columns 'TV' (stimulus intensity) and 'response' (0/1)
+        bg : float
+            Background intensity (-1 or 1)
+        
+        Returns
+        -------
+        thresholds : dict
+            Thresholds for requested probabilities
+        """
+        bg= self.myWin.background_val
+        # Load and filter data
         thisDat = pd.read_csv(file_path)
         thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
 
-        allIntensities = thisDat['TC'].tolist()
+        # Convert raw intensities to absolute contrast
+        # allStim = thisDat['TV'].tolist()
+        # allIntensities = utils.abs_contrast_from_bg(allStim, bg)  # now in [0,1]
+        allIntensities = thisDat['TN']
+        print(f'--------All intensities (raw): {allIntensities.tolist()}')
         allResponses = thisDat['response'].tolist()
 
-        i, r, n = data.functionFromStaircase(
-            allIntensities, allResponses, bins='unique'
-        )
-
+        # Collapse repetitions
+        i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
         combinedN = pylab.array(n)
 
+        # Fit logistic
         fit = data.FitLogistic(
             i, r,
-            expectedMin=0.0,      # important given your data range
+            expectedMin=0.0,      # for 2AFV, 0.5 can also be used if you prefer
             sems=1.0 / combinedN,
             optimize_kws={'maxfev': int(1e6)}
         )
 
+        # Compute thresholds
         probs = [0.50, 0.70, 0.99]
-        thresholds = {p: round(fit.inverse(p), 4) for p in probs}
+        thresholds_norm = {p: round(fit.inverse(p), 8) for p in probs}
 
+        thresholds_val = {
+            p: round(utils.stim_from_abs_contrast(c, bg), 8)
+            for p, c in thresholds_norm.items()
+}
         print(f'--- Thresholds [{self.id}, Baseline] ---')
-        for p, t in thresholds.items():
+        for p, t in thresholds_val.items():
             print(f'{int(p*100)}%: {t}')
 
-        return thresholds
-
+        return thresholds_norm, thresholds_val
         
     def reDoBase(self,thresh):
-        m_redo = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
+        m_redo = visual.TextStim(self.myWin.win, color=self.myWin.stimulus_colour, height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\n\nTry again [y / n]?")
         # m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
         #                          text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")

@@ -82,7 +82,7 @@ all_x = np.array(all_x)
 all_y = np.array(all_y)
 
 # symmetric padding around center
-pad = 50  # manual padding in same units as positions/length (increase if needed)
+pad = 35  # manual padding in same units as positions/length (increase if needed)
 xmin_global = all_x.min() - pad
 xmax_global = all_x.max() + pad
 ymin_global = all_y.min() - pad
@@ -119,7 +119,7 @@ for idx, name in enumerate(names):
     # ax.plot([ -1, 1], [0, 0], color='lightgray', linewidth=0.6)
     # ax.plot([0, 0], [-1, 1], color='lightgray', linewidth=0.6)
 
-    ax.set_title(name, fontsize=10)
+    #ax.set_title(name, fontsize=10)
     ax.set_aspect('equal')
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
