@@ -18,7 +18,7 @@ is_test = True
 
 if is_test:
     tracker = False 
-    run_baseline = True 
+    run_baseline = False 
     tutorial_done = True   
     sub_id = "000"
 else:
@@ -26,8 +26,6 @@ else:
     run_baseline = True 
     tutorial_done = True
     sub_id = str(utils.SubNumber("subNum.txt"))
-    
-#%% 
 
 #%% Load configuration
 default_config_dir = "./config"
@@ -67,9 +65,16 @@ stepsizes = expConfig["fixed_params"]["step_sizes"]
 nBlocks_main = expConfig["exp_blocks"]["main"]["n_blocks"]
 
 background_val = expConfig["fixed_params"]["background_val"]
-# min_val = expConfig["fixed_params"]["min_val"]
-# max_val = expConfig["fixed_params"]["max_val"]
-min
+
+
+if background_val >= 0:
+    max_val = 1.0 # this also clips contrast?
+    min_val = -background_val # Negative of background, passed in contrast of line (line color = - background)
+else: # Background is negative, so min val is clipped to background, and max val is 1.0
+    max_val = 1.0
+    min_val = background_val # Background is negative pass into contrast of line (line color = - background)
+    
+print(f"Background val: {background_val}, max_val: {max_val}, min_val: {min_val}")
 
 start_val = expConfig["fixed_params"]["start_val"]
 reversals = expConfig["fixed_params"]["reversals"]
@@ -139,13 +144,16 @@ if run_baseline:
         baseline.run_baseline()
         baseline_thresholds_norm, baseline_thresholds = baseline.getThresholdFromBase(file_T)
 
-        T_50_norm = baseline_thresholds_norm[0.50]
-        T_70_norm = baseline_thresholds_norm[0.70]
-        T_99_norm = baseline_thresholds_norm[0.99]
+        T_50_norm = baseline_thresholds_norm
+        T_50 = baseline_thresholds
         
-        T_50 = baseline_thresholds[0.50]
-        T_70 = baseline_thresholds[0.70]
-        T_99 = baseline_thresholds[0.99]
+        # T_50_norm = baseline_thresholds_norm[0.50]
+        # T_70_norm = baseline_thresholds_norm[0.70]
+        # T_99_norm = baseline_thresholds_norm[0.99]
+        
+        # T_50 = baseline_thresholds[0.50]
+        # T_70 = baseline_thresholds[0.70]
+        # T_99 = baseline_thresholds[0.99]
 
         print(f"[BASELINE] Target threshold = {T_50:.8f}")
         redo = baseline.reDoBase(T_50)
@@ -224,8 +232,12 @@ if run_baseline:
 # print(f"[MAIN] Flanker contrast levels: {fc_levels}")
 
 if baseline_thresholds is None:
-    baseline_thresholds = {0.5: -0.75, 0.7: -0.70, 0.99: -0.65}
-    baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
+    if background_val >= 0:
+        baseline_thresholds = {0.5: -0.87, 0.7: -0.8, 0.99: -0.75}
+        baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
+    else:
+        baseline_thresholds = {0.5: 0.87, 0.7: 0.85, 0.99: 0.8}
+        baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     
     T_50 = baseline_thresholds[0.50]
     T_70 = baseline_thresholds[0.70]
@@ -252,7 +264,7 @@ for stim_key in stim_keys:
         "startVal": start_val, 
         "maxVal": max_val,
         "minVal": min_val,
-        "stepSizes": expConfig['fixed_params']["step_sizes"],
+        "stepSizes": stepsizes,
         "stepType": expConfig['fixed_params']["step_type"],
         "nReversals": expConfig['fixed_params']["reversals"],
         "nUp": expConfig['fixed_params']["n_up"],
@@ -267,24 +279,26 @@ for stim_key in stim_keys:
             factor = cond['FC_factor']
             
             if factor > 20:
-                #fc_value = -1.0
-                fc_value = np.mean(myWin.stimulus_colour)
-                print(f"Factor > 10 so baseline: {T_50}, fc_value: {fc_value}")
+                fc_value = 1.0 # the full contrast of contour colour, negative max of -1 1 depending on background
+                print(f"Factor > 20 so baseline: {T_50}, fc_value: {fc_value}")
             else:
-                #fc_value = np.clip(background_val + (abs(T_50 - background_val) * factor), -abs(background_val), abs(background_val))
-                delta_50 = T_50 - background_val
-                fc_value = background_val + factor * delta_50
-                fc_value = np.clip(fc_value, -1.0, 1.0)
+                delta_50 = (background_val + T_50) #T_50 is in contrast so will be negative of intensity of background, so + for difference
                 
+                if background_val >= 0:
+                    fc_value = -(background_val - (factor * delta_50))
+                else:
+                    fc_value = (background_val - (factor * delta_50)) 
+                    
+                    
             print(f"{stim_key}, {label}, {fc_value}")
             
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": round(start_val + random.uniform(-0.3, 0.3), 8),
+                "startVal": start_val, #round(start_val + random.uniform(-0.3, 0.3), 8),
                 "maxVal": max_val,
                 "minVal": min_val,
-                "stepSizes": expConfig['fixed_params']["step_sizes"],
+                "stepSizes": stepsizes,
                 "stepType": expConfig['fixed_params']["step_type"],
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],

@@ -336,6 +336,144 @@ plt.legend()
 plt.grid(True)
 #plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
+##%
+#%% LLM version for relative contrast over threshold:
+allowed_flankers = df_mean['flanker'].unique()[2:]  # Exclude first two flankers
+
+df_mean = (
+    agg_plot_df[agg_plot_df['flanker'].isin(allowed_flankers)]
+    .groupby(['condition', 'flanker'])
+    .agg(
+        mean_threshold=('threshold07', 'mean'),
+        std_threshold=('threshold07', 'std'),
+        n=('threshold07', 'count'),
+        mean_FC=('FC', 'mean'),
+        mean_target=('target07', 'mean')
+    )
+    .reset_index()
+)
+
+# SEM
+df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
+
+# Background contrast
+background = -0.9
+
+# Scale by background → target contrast
+df_mean['delta_threshold_bg_scaled'] = (
+    (df_mean['mean_threshold'] - df_mean['mean_target']) /
+    (df_mean['mean_target'] - background)
+) * 100
+
+df_mean['sem_bg_scaled'] = (
+    df_mean['sem'] /
+    (df_mean['mean_target'] - background)
+) * 100
+
+# Normalize FC for x-axis (unchanged)
+maximum = 1.0
+df_mean['mean_FC_pct'] = (
+    (df_mean['mean_FC'] - background) / (maximum - background)
+) * 100
+
+# Plot
+plt.figure(figsize=(8, 6))
+
+for cond in df_mean['condition'].unique():
+    sub = df_mean[df_mean['condition'] == cond]
+    plt.errorbar(
+        sub['mean_FC_pct'],
+        sub['delta_threshold_bg_scaled'],
+        yerr=sub['sem_bg_scaled'],
+        marker='o',
+        capsize=3,
+        label=cond
+    )
+
+plt.axhline(0, color='k', linestyle='--', label='Target (Δ = 0)')
+plt.xlabel("FC (% normalized from −0.9)")
+plt.ylabel("%ΔDetection with respect to background-target contrast)")
+plt.xscale('log')
+plt.xlim(0.1, 150)
+plt.title("Contour Detection is Modulated by Surround Contrast")
+plt.grid(False)
+# plt.legend()
+
+plt.savefig(
+    os.path.join(results_path, "delta_thresholds_bg_scaled.png"),
+    dpi=300
+)
+plt.show()
+
+# allowed_flankers = df_mean['flanker'].unique()[2:]  # Exclude first two flankers
+
+# df_mean = (
+#     agg_plot_df[agg_plot_df['flanker'].isin(allowed_flankers)]
+#     .groupby(['condition', 'flanker'])
+#     .agg(
+#         mean_threshold=('threshold07', 'mean'),
+#         std_threshold=('threshold07', 'std'),
+#         n=('threshold07', 'count'),
+#         mean_FC=('FC', 'mean'),
+#         mean_target=('target07', 'mean')
+#     )
+#     .reset_index()
+# )
+
+# # SEM
+# df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
+
+# # Normalization parameters
+# baseline = -0.9
+# maximum = 1.0
+
+# # Normalize FC
+# df_mean['mean_FC_pct'] = (
+#     (df_mean['mean_FC'] - baseline) / (maximum - baseline)
+# ) * 100
+
+# # Normalize thresholds and target
+# df_mean['mean_threshold_pct'] = (
+#     (df_mean['mean_threshold'] - baseline) / (maximum - baseline)
+# ) * 100
+
+# df_mean['mean_target_pct'] = (
+#     (df_mean['mean_target'] - baseline) / (maximum - baseline)
+# ) * 100
+
+# # Difference relative to target
+# df_mean['delta_threshold_pct'] = (
+#     df_mean['mean_threshold_pct'] - df_mean['mean_target_pct']
+# )
+
+# # SEM in normalized space
+# df_mean['sem_pct'] = df_mean['sem'] / (maximum - baseline) * 100
+
+# # Plot
+# plt.figure(figsize=(8, 6))
+
+# for cond in df_mean['condition'].unique():
+#     sub = df_mean[df_mean['condition'] == cond]
+#     plt.errorbar(
+#         sub['mean_FC_pct'],
+#         sub['delta_threshold_pct'],
+#         yerr=sub['sem_pct'],
+#         marker='o',
+#         capsize=3,
+#         label=cond
+#     )
+
+# plt.axhline(0, color='k', linestyle='--', label='Target (Δ = 0)')
+# plt.xlabel("FC (% normalized from −0.9)")
+# plt.ylabel("Δ Threshold (% contrast relative to target)")
+# plt.xscale('log')
+# plt.xlim(0.1, 150)
+# plt.title("Normalized Threshold Difference Relative to Target")
+# plt.grid(False)
+# # plt.legend()
+
+# plt.savefig(os.path.join(results_path, "delta_thresholds_by_condition.png"), dpi=300)
+# plt.show()
 # %%
 # Normalize FC to 0-100% based on min and max values
 # df_mean = (
@@ -384,10 +522,11 @@ plt.ylabel("Mean Adjusted Threshold (0.7)")
 plt.xscale('log')
 plt.xlim(0.1, 150)  # Start slightly above 0 for log scale
 plt.title("Normalized Mean Thresholds Across Participants by Condition")
-plt.legend()
-plt.grid(True)
+#plt.legend()
+plt.grid(False)
 plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
+
 
 # %% Bar plot (needs simplification)
 # self bar plot, express everything as percentage change from target threshold at 0.7

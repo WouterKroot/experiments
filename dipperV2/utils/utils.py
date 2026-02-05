@@ -39,6 +39,7 @@ def create_line(Win, pos=(0, 0), angle=90, length=40):
         
     # line_color = [line_color] * 3 # make it RGB
     return visual.Line(Win.win, start=end1, end=end2, lineColor= Win.stimulus_colour, lineWidth=3.5)
+    #return visual.Line(Win.win, start=end1, end=end2, lineColor= 'black', lineWidth=3.5)
 
 def abs_contrast_from_bg(stim, bg):
     """

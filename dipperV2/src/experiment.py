@@ -384,8 +384,6 @@ class Experiment:
                 condition = currentStair.condition
                 thisLabel = condition['label']
                 targetIntensity = float(currentStair.intensity)
-
-            
             
             # --- Handle breaks ---
             if thisTrial in breaks:
@@ -409,13 +407,6 @@ class Experiment:
             
             targetContrast = utils.abs_contrast_from_bg(targetIntensity, bg)
             flankerContrast = utils.abs_contrast_from_bg(flankerIntensity, bg)
-
-            # for entry in stimulus['components']:
-            #     if entry.get('type') == 'target':
-            #         entry['line_obj'].contrast = targetIntensity
-            #     else:
-            #         entry['line_obj'].contrast = flankerIntensity
-            #     lines.append(entry['line_obj'])
             
             lines = []
             for entry in stimulus['components']:
@@ -424,19 +415,17 @@ class Experiment:
 
                 # --- Null trial: target should be invisible ---
                 if isNull and is_target:
-                     entry['line_obj'].lineColor = None  # exact background
+                    entry['line_obj'].contrast = self.myWin.background_val  # exact background
                 else:
                     # Normal trial or flanker: assign proper contrast
                     if is_target:
-                        #entry['line_obj'].lineColor = self.myWin.stimulus_colour
                         entry['line_obj'].contrast = targetIntensity
                     else:
-                        #entry['line_obj'].lineColor = self.myWin.stimulus_colour
                         entry['line_obj'].contrast = flankerIntensity
 
                 lines.append(entry['line_obj'])
 
-            print(f'Label: {thisLabel}, target intensity: {targetIntensity}, flanker intensity: {flankerIntensity}, target contrast: {targetContrast}, flanker contrast: {flankerContrast}')
+            print(f'Label: {thisLabel}, target intensity (TC): {targetIntensity}, flanker intensity (FC): {flankerIntensity}, target contrast: {targetContrast}, flanker contrast: {flankerContrast}')
             # --- Draw fixation ---
             self.myWin.diode.color *= -1
             self.myWin.drawOrder(self.myWin.fixation)
@@ -585,7 +574,7 @@ class Experiment:
         Parameters
         ----------
         file_path : str
-            CSV with columns 'TV' (stimulus intensity) and 'response' (0/1)
+            CSV with columns 'TN' (stimulus contrast normalised), 'TC' target contrast and 'response' (0/1)
         bg : float
             Background intensity (-1 or 1)
         
@@ -602,7 +591,14 @@ class Experiment:
         # Convert raw intensities to absolute contrast
         # allStim = thisDat['TV'].tolist()
         # allIntensities = utils.abs_contrast_from_bg(allStim, bg)  # now in [0,1]
-        allIntensities = thisDat['TN']
+        allIntensities_norm = thisDat['TN'] 
+        allIntensities_norm_transformed = utils.stim_from_abs_contrast(allIntensities_norm, bg)
+        
+        allIntensities = thisDat['TC']
+        threshold_val = allIntensities.median()
+        #threshold_val_norm = allIntensities_norm.median()
+        threshold_val_norm_transformed = allIntensities_norm_transformed.median()
+        
         print(f'--------All intensities (raw): {allIntensities.tolist()}')
         allResponses = thisDat['response'].tolist()
 
@@ -613,24 +609,25 @@ class Experiment:
         # Fit logistic
         fit = data.FitLogistic(
             i, r,
-            expectedMin=0.0,      # for 2AFV, 0.5 can also be used if you prefer
+            expectedMin=0.5,      # for 2AFV, 0.5 can also be used if you prefer
             sems=1.0 / combinedN,
             optimize_kws={'maxfev': int(1e6)}
         )
 
         # Compute thresholds
-        probs = [0.50, 0.70, 0.99]
-        thresholds_norm = {p: round(fit.inverse(p), 8) for p in probs}
+        # probs = [0.50, 0.70, 0.99]
+        # thresholds_norm = {p: fit.inverse(p) for p in probs}
 
-        thresholds_val = {
-            p: round(utils.stim_from_abs_contrast(c, bg), 8)
-            for p, c in thresholds_norm.items()
-}
-        print(f'--- Thresholds [{self.id}, Baseline] ---')
-        for p, t in thresholds_val.items():
-            print(f'{int(p*100)}%: {t}')
+        # thresholds_val = {
+        #     p: utils.stim_from_abs_contrast(c, bg)
+        #     for p, c in thresholds_norm.items()}
+        # threshold_val = allIntensities.tail(6).mean()
+        
+        # print(f'--- Thresholds [{self.id}, Baseline] ---')
+        # for p, t in thresholds_val.items():
+        #     print(f'{int(p*100)}%: {t}')
 
-        return thresholds_norm, thresholds_val
+        return threshold_val_norm_transformed, threshold_val
         
     def reDoBase(self,thresh):
         m_redo = visual.TextStim(self.myWin.win, color=self.myWin.stimulus_colour, height = 32, wrapWidth=600,

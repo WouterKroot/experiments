@@ -14,10 +14,8 @@ class Window:
         self.t_break = expConfig['fixed_params']['t_break']
         #Change the backgorund colour to match the window.color, -- 
         self.background_val = expConfig['fixed_params']['background_val']
-        self.min_val = expConfig['fixed_params']['min_val']
-        self.max_val = expConfig['fixed_params']['max_val']
-        
-        self.stimulus_colour = -(np.sign(self.background_val))
+        #self.stimulus_colour = -(self.win.color)
+        self.stimulus_colour = [-(np.sign(self.background_val))]*3 #rgb space
 
         self.fixation = visual.GratingStim(win = window, color= self.stimulus_colour, 
                                            colorSpace='rgb', tex=None, mask='circle', size=5)
@@ -26,8 +24,6 @@ class Window:
         self.feedback_yes = visual.TextStim(win=window, text="YES", color=[0, 1, 0], pos=[-780, -500])
         self.feedback_no = visual.TextStim(win=window, text="NO", color=[1, 0, 0], pos=[-780, -500])
         self.feedback_nan = visual.TextStim(win=window, text="NO RESPONSE", color=[1, 1, 0], pos=[-780, -500])
-        
-
               
     def checkQuit(self):
         if 'escape' in event.getKeys():
