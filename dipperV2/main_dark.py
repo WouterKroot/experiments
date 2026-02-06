@@ -18,13 +18,13 @@ is_test = False
 
 if is_test:
     tracker = False 
-    run_baseline = False
-    tutorial_done = True   
+    run_baseline = True
+    tutorial_done = False   
     sub_id = str(0)
 else:
     tracker = True 
     run_baseline = True
-    tutorial_done = False
+    tutorial_done = True
     sub_id = str(utils.SubNumber("subNum.txt"))
     
 #%% 
