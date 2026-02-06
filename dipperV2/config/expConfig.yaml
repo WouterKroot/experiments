@@ -14,9 +14,11 @@ fixed_params:
   n_down: 1
   start_val: 0.5 # is the contrast the staircase starts with not the intensity
   background_val: 0.9
-  # max_val: 1.0
-  # min_val: -1.0 # define in main based on background
-  step_sizes: [0.7, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.0025]  #, 0.09, 0.07, 0.05, 0.025, 0.01, 0.05, 0.04, 0.03, 0.025]
+  step_sizes: [0.4  , 0.379, 0.358, 0.337, 0.316, 
+              0.295, 0.274, 0.253, 0.232, 0.211,
+              0.19 , 0.169, 0.148, 0.127, 0.106, 
+              0.085, 0.064, 0.043, 0.022, 0.001]
+  #step_sizes: [0.7, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.0025]  #, 0.09, 0.07, 0.05, 0.025, 0.01, 0.05, 0.04, 0.03, 0.025]
   
   # [0.5       , 0.46435714, 0.42871429, 0.39307143, 0.35742857,
   #      0.32178571, 0.28614286, 0.2505    , 0.21485714, 0.17921429,
@@ -29,7 +31,7 @@ fixed_params:
     # 0.015658019951383658, 0.012513201009886982, 0.01, 0.009, 0.008, 
     # 0.015, 0.009, 0.007, 0.006, 0.005, 0.0025] #np.logspace(-0.15, -2, 20)
   step_type: 'lin'
-  reversals: 8 #15 #24 #22 #21 #1
+  reversals: 20 #15 #24 #22 #21 #1
   nullOdds: 0.1
 
 exp_blocks:
@@ -48,16 +50,16 @@ exp_blocks:
       #   FC_factor: 0.25
       - label: "75"
         FC_factor: 0.75
-      # - label: "100"
-      #   FC_factor: 1
+      - label: "100"
+        FC_factor: 1
       - label: "150"
         FC_factor: 1.5
-      # - label: "300"
-      #   FC_factor: 3
-      # - label: "900"
-      #   FC_factor: 9
-      # - label: "1000"
-      #   FC_factor: 15
+      - label: "300"
+        FC_factor: 3
+      - label: "900"
+        FC_factor: 9
+      - label: "1000"
+        FC_factor: 15
       - label: "10000"
         FC_factor: 100
         
@@ -120,71 +122,71 @@ stimuli:
       angle: 90
       length: 18
 
-  # triple_flanker_orth: # All orthogonal
-  #   - object: line
-  #     type: flanker
-  #     pos: [-27, 27]
-  #     angle: 0
-  #     length: 18
-  #   - object: line
-  #     type: flanker
-  #     pos: [0, 27]
-  #     angle: 0
-  #     length: 18
-  #   - object: line
-  #     type: flanker
-  #     pos: [27, 27]
-  #     angle: 0
-  #     length: 18
+  triple_flanker_orth: # All orthogonal
+    - object: line
+      type: flanker
+      pos: [-27, 27]
+      angle: 0
+      length: 18
+    - object: line
+      type: flanker
+      pos: [0, 27]
+      angle: 0
+      length: 18
+    - object: line
+      type: flanker
+      pos: [27, 27]
+      angle: 0
+      length: 18
 
-  #   - object: line
-  #     type: flanker
-  #     pos: [-27, 0]
-  #     angle: 0
-  #     length: 18
-  #   - object: line
-  #     type: target
-  #     pos: [0, 0]
-  #     angle: 90
-  #     length: 18
-  #   - object: line
-  #     type: flanker
-  #     pos: [27, 0]
-  #     angle: 0
-  #     length: 18
+    - object: line
+      type: flanker
+      pos: [-27, 0]
+      angle: 0
+      length: 18
+    - object: line
+      type: target
+      pos: [0, 0]
+      angle: 90
+      length: 18
+    - object: line
+      type: flanker
+      pos: [27, 0]
+      angle: 0
+      length: 18
 
-  #   - object: line
-  #     type: flanker
-  #     pos: [-27, -27]
-  #     angle: 0
-  #     length: 18
-  #   - object: line
-  #     type: flanker
-  #     pos: [0, -27]
-  #     angle: 0
-  #     length: 18
-  #   - object: line
-  #     type: flanker
-  #     pos: [27, -27]
-  #     angle: 0
-  #     length: 18
+    - object: line
+      type: flanker
+      pos: [-27, -27]
+      angle: 0
+      length: 18
+    - object: line
+      type: flanker
+      pos: [0, -27]
+      angle: 0
+      length: 18
+    - object: line
+      type: flanker
+      pos: [27, -27]
+      angle: 0
+      length: 18
   # # #------
-  # single_flanker_top:
-  # - object: line
-  #   type: flanker
-  #   pos: [0, 27]
-  #   angle: 90
-  #   length: 18
-  # - object: line
-  #   type: target
-  #   pos: [0, 0]
-  #   angle: 90
-  #   length: 18
-  # - object: line
-  #   type: flanker
-  #   pos: [0, -27]
-  #   angle: 90
-  #   length: 18
+  single_flanker_top:
+  - object: line
+    type: flanker
+    pos: [0, 27]
+    angle: 90
+    length: 18
+  - object: line
+    type: target
+    pos: [0, 0]
+    angle: 90
+    length: 18
+  - object: line
+    type: flanker
+    pos: [0, -27]
+    angle: 90
+    length: 18
 #---
   # single_flanker_side:
   #   - object: line

@@ -232,9 +232,9 @@ class Experiment:
             "To continue, press the right arrow."
         )
 
-        top = visual.line.Line(win=self.myWin.win, start=(0, 30), end=(0, 70), pos=(0, 60), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
-        middle = visual.line.Line(win=self.myWin.win, start=(0, -20), end=(0, 20), pos=(0, 0), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
-        bottom = visual.line.Line(win=self.myWin.win, start=(0, -70), end=(0, -30), pos=(0, -60), ori=0.0, contrast=1.0, color=self.myWin.stimulus_colour)
+        top = visual.line.Line(win=self.myWin.win, start=(0, 30), end=(0, 70), pos=(0, 60), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour)
+        middle = visual.line.Line(win=self.myWin.win, start=(0, -20), end=(0, 20), pos=(0, 0), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour)
+        bottom = visual.line.Line(win=self.myWin.win, start=(0, -70), end=(0, -30), pos=(0, -60), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour)
         red_circle = visual.Circle(win=self.myWin.win, fillColor=None, radius=35, lineColor='red', lineWidth=3)
 
         self.myWin.drawOrder(self.myWin.fixation)
@@ -295,22 +295,22 @@ class Experiment:
             # Trial 1: visible (single line)
             middle = visual.Line(
                 win=self.myWin.win, start=(0, -20), end=(0, 20),
-                pos=(0, 0), ori=0.0, color=-1, lineWidth=3
+                pos=(0, 0), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour, lineWidth=3
             )
             correct_streak += show_trial([middle], visible=True)
 
             # Trial 2: visible (3 lines)
             top = visual.Line(
                 win=self.myWin.win, start=(0, -20), end=(0, 20),
-                pos=(0, 60), ori=0.0, color=-1, lineWidth=3
+                pos=(0, 60), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour, lineWidth=3
             )
             middle = visual.Line(
                 win=self.myWin.win, start=(0, -20), end=(0, 20),
-                pos=(0, 0), ori=0.0, color=-1, lineWidth=3
+                pos=(0, 0), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour, lineWidth=3
             )
             bottom = visual.Line(
                 win=self.myWin.win, start=(0, -20), end=(0, 20),
-                pos=(0, -60), ori=0.0, color=-1, lineWidth=3
+                pos=(0, -60), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour, lineWidth=3
             )
             correct_streak += show_trial([bottom, middle, top], visible=True)
 
@@ -324,7 +324,7 @@ class Experiment:
                     all_stims.append(
                         visual.Line(
                             win=self.myWin.win, start=(0, -20), end=(0, 20),
-                            pos=(x, y), ori=0.0, color=-1, lineWidth=3
+                            pos=(x, y), ori=0.0, contrast=-1.0, color=self.myWin.stimulus_colour, lineWidth=3
                         )
                     )
             correct_streak += show_trial(all_stims, visible=False)
@@ -415,7 +415,10 @@ class Experiment:
 
                 # --- Null trial: target should be invisible ---
                 if isNull and is_target:
-                    entry['line_obj'].contrast = self.myWin.background_val  # exact background
+                    if bg >= 0:
+                       entry['line_obj'].contrast = -bg 
+                    else:
+                        entry['line_obj'].contrast = bg  # exact background
                 else:
                     # Normal trial or flanker: assign proper contrast
                     if is_target:
@@ -479,22 +482,6 @@ class Experiment:
             # --- Add response only if not null ---
             if not isNull:
                 stairs.addResponse(thisResp)
-                # inner = stairs.currentStaircase
-
-                # # Safely extract reversal info
-                # rev_intens = getattr(inner, "reversalIntensities", [])
-                # rev_points = getattr(inner, "reversalPoints", [])
-
-                # # Print staircase status
-                # print(
-                #     f"[{inner.name}] "
-                #     f"trial={inner.thisTrialN}, "
-                #     f"intensity={inner.intensity:.4f}, "
-                #     f"correct={thisResp}, "
-                #     f"nReversals={len(rev_intens)}, "
-                #     f"reversalIntensities={rev_intens}, "
-                #     f"stepSize={inner.stepSizeCurrent}")
-                
                 stairTrialCount += 1
 
             # Increment total trial counter for breaks / logging
@@ -512,61 +499,6 @@ class Experiment:
         psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
         stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
-    # def getThresholdFromBase(self, file_path): #worked previously with 0 background, but since min val is -1 the fit is -inf
-    #     threshVal = 0.5 #50% correct for 2AFV, TV
-    #     #expectedMin = 0.5 #2AFV normally min is expected 0.5
-
-    #     thisDat = pd.read_csv(file_path)
-    #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
-
-    #     allIntensities = thisDat['TV'].tolist()
-    #     allResponses = thisDat['response'].tolist()
-
-    #     i, r, n = data.functionFromStaircase(allIntensities, allResponses, bins='unique')
-    #     #print(f'Intensities: {i}, Responses: {r}, N: {n}') 
-    #     combinedInten, combinedResp, combinedN = i, r, n
-    #     combinedN = pylab.array(combinedN)
-        
-    #     fit = data.FitLogistic(
-    #         combinedInten, combinedResp,
-    #         # expectedMin=expectedMin,
-    #         expectedMin=0.0, # needs to be 0.0
-    #         sems=1.0 / combinedN,
-    #         #sems = 1.0,
-    #         # sems = np.sqrt((combinedResp * (1 - combinedResp)) / combinedN),
-    #         optimize_kws={'maxfev': int(1e6)}
-    #     )
-    #     thresh = fit.inverse(threshVal)
-    #     print(f'-----------Threshold for [{self.id}, Baseline] is: {thresh}-----------')
-    #     return thresh
-    # def getThresholdFromBase(self, file_path): #worked with dark background
-    #     thisDat = pd.read_csv(file_path)
-    #     thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
-
-    #     allIntensities = thisDat['TV'].tolist()
-    #     allResponses = thisDat['response'].tolist()
-
-    #     i, r, n = data.functionFromStaircase(
-    #         allIntensities, allResponses, bins='unique'
-    #     )
-
-    #     combinedN = pylab.array(n)
-
-    #     fit = data.FitLogistic(
-    #         i, r,
-    #         expectedMin=0.0,      # important given your data range
-    #         sems=1.0 / combinedN,
-    #         optimize_kws={'maxfev': int(1e6)}
-    #     )
-
-    #     probs = [0.50, 0.70, 0.99]
-    #     thresholds = {p: round(fit.inverse(p), 4) for p in probs}
-
-    #     print(f'--- Thresholds [{self.id}, Baseline] ---')
-    #     for p, t in thresholds.items():
-    #         print(f'{int(p*100)}%: {t}')
-
-    #     return thresholds
     def getThresholdFromBase(self, file_path):
         """
         Fit psychometric function on absolute contrast relative to background.
@@ -589,8 +521,6 @@ class Experiment:
         thisDat = thisDat[~thisDat['label'].str.endswith('_null')]
 
         # Convert raw intensities to absolute contrast
-        # allStim = thisDat['TV'].tolist()
-        # allIntensities = utils.abs_contrast_from_bg(allStim, bg)  # now in [0,1]
         allIntensities_norm = thisDat['TN'] 
         allIntensities_norm_transformed = utils.stim_from_abs_contrast(allIntensities_norm, bg)
         
@@ -613,28 +543,11 @@ class Experiment:
             sems=1.0 / combinedN,
             optimize_kws={'maxfev': int(1e6)}
         )
-
-        # Compute thresholds
-        # probs = [0.50, 0.70, 0.99]
-        # thresholds_norm = {p: fit.inverse(p) for p in probs}
-
-        # thresholds_val = {
-        #     p: utils.stim_from_abs_contrast(c, bg)
-        #     for p, c in thresholds_norm.items()}
-        # threshold_val = allIntensities.tail(6).mean()
-        
-        # print(f'--- Thresholds [{self.id}, Baseline] ---')
-        # for p, t in thresholds_val.items():
-        #     print(f'{int(p*100)}%: {t}')
-
         return threshold_val_norm_transformed, threshold_val
         
     def reDoBase(self,thresh):
         m_redo = visual.TextStim(self.myWin.win, color=self.myWin.stimulus_colour, height = 32, wrapWidth=600,
                                  text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\n\nTry again [y / n]?")
-        # m_good = visual.TextStim(self.myWin.win, color=[1, 1, 1], height = 32, wrapWidth=600,
-        #                          text = f"Please wait for the experimenter.\nParticipant {self.id} baseline detection threshold:\n{thresh}\nThreshold inside of expected range.\nGo again [y / n]?")
-        # if thresh > 0.1 or thresh <= 0:
         
         self.myWin.drawOrder(m_redo)
         keys = event.waitKeys(keyList=['y','n'])

@@ -31,15 +31,7 @@ def create_line(Win, pos=(0, 0), angle=90, length=40):
         pos[0] + math.cos(math.radians(angle)) * length / 2,
         pos[1] + math.sin(math.radians(angle)) * length / 2
     )
-    # bg = np.mean(win.color) #bg is the color of the window
-    # line_color = -np.sign(bg) # line_color is the opposite of the window, but needs a min, max in -1 to 1 range
-    
-    # if line_color == 0: # the np.sign is 0 when bg is 0, make the line black in that case
-    #     line_color = -1.0   
-        
-    # line_color = [line_color] * 3 # make it RGB
     return visual.Line(Win.win, start=end1, end=end2, lineColor= Win.stimulus_colour, lineWidth=3.5)
-    #return visual.Line(Win.win, start=end1, end=end2, lineColor= 'black', lineWidth=3.5)
 
 def abs_contrast_from_bg(stim, bg):
     """
@@ -170,12 +162,10 @@ def clean_df(df):
     df = df.copy()
     df['condition'] = df['label'].apply(extract_condition)
     
-
     # Boolean mask for null trials
     is_null_trial = df['label'].str.endswith('_null')
     # Extract only null trials
     null_trials = df[is_null_trial].copy()
-    #null_trials['condition'] = null_trials['label'].apply(extract_condition)
 
     # Compute false positive counts per condition type
     false_positives = {}
@@ -193,10 +183,6 @@ def clean_df(df):
 
     # Keep only non-null trials
     cleaned_df = df[~is_null_trial].copy()
-
-    # # Optional: add a column for condition grouping
-    # cleaned_df['condition'] = cleaned_df['label'].str.rsplit('_', n=1).str[0]
-    
     # Need a condition for different participants (all have different FC values)
     cleaned_df['flanker_condition'] = 0
     # # For non-targets, extract numeric suffix and convert to int
@@ -241,9 +227,7 @@ def response_distribution(df, false_positive_dict, max_val=0.0, n_bins=30):
     # Define bins CHANGED
     bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
     df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
-    
-    # Quantile binning, does not work yet
-    # df['TC_bin'] = pd.qcut(df['TC'], q=n_bins, duplicates='drop')
+
     combined_list = []
 
     for label_name in df['label'].unique():
@@ -282,87 +266,3 @@ def response_distribution(df, false_positive_dict, max_val=0.0, n_bins=30):
 
     combined_df = pd.concat(combined_list, ignore_index=True)
     return all_distributions, combined_df
-
-# # adaptive binning test
-# def response_distribution(df, false_positive_dict, max_val=0.0, n_bins=30):
-#         """
-#         Returns the distribution of response=1 vs response=0 per binned intensity (TC)
-#         for every unique label, including adjusted proportion based on false positives.
-
-#         Parameters
-#         ----------
-#         df : pandas.DataFrame
-#             Must contain columns 'label', 'TC', 'response', and 'condition'.
-#         false_positive_dict : dict
-#             Dictionary with keys = condition, containing 'false_positive_rate'.
-#         max_val : float
-#             Maximum TC value to include in bins.
-#         n_bins : int
-#             Number of bins to divide the TC range into.
-
-#         Returns
-#         -------
-#         all_distributions : dict
-#             Dictionary of label_name -> DataFrame with columns:
-#             ['TC_bin', 'Response_0', 'Response_1', 'Proportion_yes', 'Adjusted_yes']
-#         combined_df : pandas.DataFrame
-#             All label distributions concatenated with 'label' column.
-#         """
-
-#         all_distributions = {}
-
-#         # Filter TC range
-#         df = df[(df['TC'] >= -0.9) & (df['TC'] <= max_val)].copy()
-
-#         # Define bins
-#         # bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
-#         # df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
-#         n_total = len(label_df)
-#         n_bins = max(1, n_total // trials_per_bin)
-        
-#         label_df['TC_bin'] = label_df.index // trials_per_bin
-#         bin_edges = []
-#         for bin_id in label_df['TC_bin'].unique():
-#                 bin_data = label_df[label_df['TC_bin'] == bin_id]
-#                 bin_min = bin_data['TC'].min()
-#                 bin_max = bin_data['TC'].max()
-#                 bin_edges.append((bin_min, bin_max, bin_id))
-                
-#         combined_list = []
-
-#         for label_name in df['label'].unique():
-#             label_df = df[df['label'] == label_name]
-#             condition = label_df['condition'].iloc[0]  # use condition to get fp
-
-#             # Get false positive rate for this condition
-#             fp_rate = false_positive_dict.get(condition, {}).get('false_positive_rate', 0.0)
-
-#             data = []
-#             for b in label_df['TC_bin'].cat.categories:
-#                 bin_df = label_df[label_df['TC_bin'] == b]
-#                 n0 = (bin_df['response'] == 0).sum()
-#                 n1 = (bin_df['response'] == 1).sum()
-#                 total = n0 + n1
-#                 proportion_yes = n1 / total if total > 0 else np.nan
-#                 adjusted_yes = (proportion_yes - fp_rate) / (1 - fp_rate) if total > 0 else np.nan
-#                 adjusted_yes = np.clip(adjusted_yes, 0, 1)  # keep in [0,1]
-
-#                 data.append({
-#                     'TC_bin': b,
-#                     'Response_0': n0,
-#                     'Response_1': n1,
-#                     'Proportion_yes': proportion_yes,
-#                     'Adjusted_yes': adjusted_yes
-#                 })
-
-#             counts = pd.DataFrame(data)
-#             all_distributions[label_name] = counts
-
-#             counts['label'] = label_name
-#             combined_list.append(counts)
-
-#             print(f"\nLabel: {label_name}")
-#             print(counts)
-
-#         combined_df = pd.concat(combined_list, ignore_index=True)
-#         return all_distributions, combined_df

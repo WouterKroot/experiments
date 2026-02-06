@@ -18,13 +18,13 @@ is_test = True
 
 if is_test:
     tracker = False 
-    run_baseline = False 
-    tutorial_done = True   
+    run_baseline = True 
+    tutorial_done = False   
     sub_id = "000"
 else:
     tracker = True 
     run_baseline = True 
-    tutorial_done = True
+    tutorial_done = False
     sub_id = str(utils.SubNumber("subNum.txt"))
 
 #%% Load configuration
@@ -146,90 +146,12 @@ if run_baseline:
 
         T_50_norm = baseline_thresholds_norm
         T_50 = baseline_thresholds
-        
-        # T_50_norm = baseline_thresholds_norm[0.50]
-        # T_70_norm = baseline_thresholds_norm[0.70]
-        # T_99_norm = baseline_thresholds_norm[0.99]
-        
-        # T_50 = baseline_thresholds[0.50]
-        # T_70 = baseline_thresholds[0.70]
-        # T_99 = baseline_thresholds[0.99]
 
         print(f"[BASELINE] Target threshold = {T_50:.8f}")
         redo = baseline.reDoBase(T_50)
         if redo:
             myWin.countdown()
             
-    #if run_baseline == False:
-#    T_70 = -0.9784
-#    else:
-#        pass
-
-#     baselineFlankerCondition = [
-#         {
-#             'label': f'baseline_triple_flanker',
-#             'stim_key': 'triple_flanker',
-#             'startVal': -0.4,
-#             'maxVal': 1.0,
-#             'minVal': -1.0,
-#             'stepSizes': stepsizes,
-#             'stepType': 'lin',
-#             'nReversals': 20,
-#             'nUp': 1,
-#             'nDown': 1,
-#             'FV': -0.985          
-#         }
-#     ]
-
-#     redo_F = True
-#     while redo_F:
-#         baseline_F = Experiment(
-#             myWin, sub_id,
-#             nTrials_base, nBlocks_base,
-#             eye_tracker,
-#             expConfig,
-#             baseline_path,
-#             nullOdds,
-#             baselineFlankerCondition
-#         )
-
-#         file_F = baseline_F.openDataFile()
-
-#         myWin.intro_baseline()
-#         baseline_F.run_baseline()
-
-#         thresholds_F = baseline_F.getThresholdFromBase(file_F)
-#         F_50 = thresholds_F[0.50]
-#         F_70 = thresholds_F[0.70]
-#         F_99 = thresholds_F[0.99]
-
-#         redo_F = baseline_F.reDoBase(F_50)
-
-#         if redo_F:
-#             myWin.countdown()
-
-#     print(f"[BASELINE] Triple flanker threshold = {F_50:.4f}")
-
-#     fc_levels = [
-#         ("0", F_50), # TV at 10% percent detection of straight condition
-#         ("1", F_70),
-#         ("2", F_99),
-#         ("3", F_99 / 2),
-#         ("4", 0.0),
-#         ("5", 1.0),
-#     ]
-# else:
-#     fc_levels = [
-#     ("0", -0.99), # TV at 10% percent detection of straight condition
-#     ("1", -0.98),
-#     ("2", -0.97),
-#     ("3", -0.5),
-#     ("4", 0.0),
-#     ("5", 1.0),
-# ]
-
-#fc_levels = np.clip(fc_levels, -1.0, 1.0)
-# print(f"[MAIN] Flanker contrast levels: {fc_levels}")
 
 if baseline_thresholds is None:
     if background_val >= 0:
@@ -240,12 +162,12 @@ if baseline_thresholds is None:
         baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     
     T_50 = baseline_thresholds[0.50]
-    T_70 = baseline_thresholds[0.70]
-    T_99 = baseline_thresholds[0.99]
+    # T_70 = baseline_thresholds[0.70]
+    # T_99 = baseline_thresholds[0.99]
 
     T_50_norm = baseline_thresholds_norm[0.50]
-    T_70_norm = baseline_thresholds_norm[0.70]
-    T_99_norm = baseline_thresholds_norm[0.99]
+    # T_70_norm = baseline_thresholds_norm[0.70]
+    # T_99_norm = baseline_thresholds_norm[0.99]
 
     print(f"No baseline thresholds found, using default T_50: {T_50})")
     #raise ValueError("No baseline thresholds found.")
@@ -295,7 +217,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": start_val, #round(start_val + random.uniform(-0.3, 0.3), 8),
+                "startVal": round(start_val + random.uniform(-0.3, 0.3), 8), # start_val
                 "maxVal": max_val,
                 "minVal": min_val,
                 "stepSizes": stepsizes,

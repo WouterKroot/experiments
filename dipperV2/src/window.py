@@ -12,9 +12,7 @@ class Window:
         self.t_fixation = expConfig['fixed_params']['t_fixation']
         self.t_response = expConfig['fixed_params']['t_response']
         self.t_break = expConfig['fixed_params']['t_break']
-        #Change the backgorund colour to match the window.color, -- 
         self.background_val = expConfig['fixed_params']['background_val']
-        #self.stimulus_colour = -(self.win.color)
         self.stimulus_colour = [-(np.sign(self.background_val))]*3 #rgb space
 
         self.fixation = visual.GratingStim(win = window, color= self.stimulus_colour, 
