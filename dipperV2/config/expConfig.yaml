@@ -29,7 +29,6 @@ fixed_params:
   reversals: 20 #22 #21 #1
   nullOdds: 0.1
 
-exp_blocks:
   baseline:
     test_trials:  10
     n_trials: 50
@@ -41,10 +40,6 @@ exp_blocks:
     n_blocks: 10 #7
 
     flanker_conditions:
-      # - label: "25"
-      #   FC_factor: 0.25
-      - label: "50"
-        FC_factor: 0.5
       - label: "75"
         FC_factor: 0.75
       - label: "100"

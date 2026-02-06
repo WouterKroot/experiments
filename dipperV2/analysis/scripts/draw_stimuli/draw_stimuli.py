@@ -11,26 +11,26 @@ stimuli = {
         {"object": "line", "type": "target", "pos": [0, 0], "angle": 90, "length": 18},
     ],
 
-    "single_flanker_top": [
-        {"object": "line", "type": "flanker", "pos": [0, 27], "angle": 90, "length": 18},
-        {"object": "line", "type": "target",  "pos": [0, 0],  "angle": 90, "length": 18},
-        {"object": "line", "type": "flanker", "pos": [0,-27], "angle": 90, "length": 18},
-    ],
+    # "single flanker top": [
+    #     {"object": "line", "type": "flanker", "pos": [0, 27], "angle": 90, "length": 18},
+    #     {"object": "line", "type": "target",  "pos": [0, 0],  "angle": 90, "length": 18},
+    #     {"object": "line", "type": "flanker", "pos": [0,-27], "angle": 90, "length": 18},
+    # ],
     
-    "single_flanker_side": [
-        {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 90,  "length": 18},
-        {"object": "line", "type": "target",  "pos": [0, 0],   "angle": 90, "length": 18},
-        {"object": "line", "type": "flanker", "pos": [27, 0],  "angle": 90,  "length": 18},
-    ],
+    # "single flanker side": [
+    #     {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 90,  "length": 18},
+    #     {"object": "line", "type": "target",  "pos": [0, 0],   "angle": 90, "length": 18},
+    #     {"object": "line", "type": "flanker", "pos": [27, 0],  "angle": 90,  "length": 18},
+    # ],
 
 
-    "single_flanker_side_orth": [
-        {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 0,  "length": 18},
-        {"object": "line", "type": "target",  "pos": [0, 0],   "angle": 90, "length": 18},
-        {"object": "line", "type": "flanker", "pos": [27, 0],  "angle": 0,  "length": 18},
-    ],
+    # "single flanker side orth": [
+    #     {"object": "line", "type": "flanker", "pos": [-27, 0], "angle": 0,  "length": 18},
+    #     {"object": "line", "type": "target",  "pos": [0, 0],   "angle": 90, "length": 18},
+    #     {"object": "line", "type": "flanker", "pos": [27, 0],  "angle": 0,  "length": 18},
+    # ],
 
-    "triple_flanker": [
+    "triple flanker": [
         {"object": "line", "type": "flanker", "pos": [-27, 27], "angle": 90, "length": 18},
         {"object": "line", "type": "flanker", "pos": [0, 27],   "angle": 90, "length": 18},
         {"object": "line", "type": "flanker", "pos": [27, 27],  "angle": 90, "length": 18},
@@ -44,9 +44,9 @@ stimuli = {
         {"object": "line", "type": "flanker", "pos": [27,-27],  "angle": 90, "length": 18},
     ],
 
-    "triple_flanker_orth": [
+    "triple flanker orth": [
         {"object": "line", "type": "flanker", "pos": [-27, 27], "angle": 0,  "length": 18},
-        {"object": "line", "type": "flanker", "pos": [0, 27],   "angle": 90, "length": 18},
+        {"object": "line", "type": "flanker", "pos": [0, 27],   "angle": 0, "length": 18},
         {"object": "line", "type": "flanker", "pos": [27, 27],  "angle": 0,  "length": 18},
 
         {"object": "line", "type": "flanker", "pos": [-27, 0],  "angle": 0,  "length": 18},
@@ -54,7 +54,7 @@ stimuli = {
         {"object": "line", "type": "flanker", "pos": [27, 0],   "angle": 0,  "length": 18},
 
         {"object": "line", "type": "flanker", "pos": [-27,-27], "angle": 0,  "length": 18},
-        {"object": "line", "type": "flanker", "pos": [0,-27],   "angle": 90, "length": 18},
+        {"object": "line", "type": "flanker", "pos": [0,-27],   "angle": 0, "length": 18},
         {"object": "line", "type": "flanker", "pos": [27,-27],  "angle": 0,  "length": 18},
     ]
 }
@@ -82,7 +82,7 @@ all_x = np.array(all_x)
 all_y = np.array(all_y)
 
 # symmetric padding around center
-pad = 100  # manual padding in same units as positions/length (increase if needed)
+pad = 50  # manual padding in same units as positions/length (increase if needed)
 xmin_global = all_x.min() - pad
 xmax_global = all_x.max() + pad
 ymin_global = all_y.min() - pad
