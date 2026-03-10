@@ -14,12 +14,12 @@ import numpy as np
 import random
 
 # Set up settings for experiment:
-is_test = True 
+is_test = False
 
 if is_test:
     tracker = False 
-    run_baseline = True 
-    tutorial_done = False   
+    run_baseline = False 
+    tutorial_done = True   
     sub_id = "000"
 else:
     tracker = True 
@@ -200,7 +200,9 @@ for stim_key in stim_keys:
             label = cond['label']
             factor = cond['FC_factor']
             
-            if factor > 20:
+            if factor == 10:
+                fc_value = 0.2
+            elif factor == 100:
                 fc_value = 1.0 # the full contrast of contour colour, negative max of -1 1 depending on background
                 print(f"Factor > 20 so baseline: {T_50}, fc_value: {fc_value}")
             else:
@@ -217,7 +219,7 @@ for stim_key in stim_keys:
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": round(start_val + random.uniform(-0.3, 0.3), 8), # start_val
+                "startVal": round(start_val + random.uniform(-0.3, 0), 8), # start_val
                 "maxVal": max_val,
                 "minVal": min_val,
                 "stepSizes": stepsizes,
