@@ -155,7 +155,7 @@ if run_baseline:
 
 if baseline_thresholds is None:
     if background_val >= 0:
-        baseline_thresholds = {0.5: -0.87, 0.7: -0.8, 0.99: -0.75}
+        baseline_thresholds = {0.5: -0.86, 0.7: -0.8, 0.99: -0.75}
         baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     else:
         baseline_thresholds = {0.5: 0.87, 0.7: 0.85, 0.99: 0.8}
