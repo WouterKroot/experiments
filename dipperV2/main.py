@@ -14,7 +14,8 @@ import numpy as np
 import random
 
 # Set up settings for experiment:
-is_test = False
+is_test = True
+background_config = "black" # "white" or "black"
 
 if is_test:
     tracker = False 
@@ -29,7 +30,12 @@ else:
 
 #%% Load configuration
 default_config_dir = "./config"
-default_config_filename = "expConfig.yaml"
+
+if background_config == "white":
+    default_config_filename = "expConfig_white.yaml"
+elif background_config == "black":
+    default_config_filename = "expConfig_black.yaml"
+    
 default_config_path = os.path.join(default_config_dir, default_config_filename)
 
 if not os.path.exists(default_config_path):
@@ -155,10 +161,10 @@ if run_baseline:
 
 if baseline_thresholds is None:
     if background_val >= 0:
-        baseline_thresholds = {0.5: -0.86, 0.7: -0.8, 0.99: -0.75}
+        baseline_thresholds = {0.5: -0.89, 0.7: -0.885, 0.99: -0.8}
         baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     else:
-        baseline_thresholds = {0.5: 0.87, 0.7: 0.85, 0.99: 0.8}
+        baseline_thresholds = {0.5: -0.796, 0.7: -0.786, 0.99: -0.780}
         baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     
     T_50 = baseline_thresholds[0.50]
@@ -171,7 +177,6 @@ if baseline_thresholds is None:
 
     print(f"No baseline thresholds found, using default T_50: {T_50})")
     #raise ValueError("No baseline thresholds found.")
-
 
 experimentConditions = []
 stim_keys = list(myWin.stimuli.keys())
@@ -200,26 +205,37 @@ for stim_key in stim_keys:
             label = cond['label']
             factor = cond['FC_factor']
             
-            if factor == 10:
-                fc_value = 0.2
-            elif factor == 100:
-                fc_value = 1.0 # the full contrast of contour colour, negative max of -1 1 depending on background
+            # if factor == 10:
+            #     fc_value = 0.2
+            # elif factor == 100:
+            #     fc_value = 1.0 # the full contrast of contour colour, negative max of -1 1 depending on background
+            #     print(f"Factor > 20 so baseline: {T_50}, fc_value: {fc_value}")
+            # else:
+            #     delta_50 = (background_val + T_50) #T_50 is in contrast so will be negative of intensity of background, so + for difference
+                
+            #     if background_val >= 0:
+            #         fc_value = -(background_val - (factor * delta_50))
+            #     else:
+            #         fc_value = (background_val - (factor * delta_50)) 
+            
+            if factor > 100:
+                fc_value = 1.0 # the intensity of colour, negative max of -1 1 depending on background
                 print(f"Factor > 20 so baseline: {T_50}, fc_value: {fc_value}")
             else:
-                delta_50 = (background_val + T_50) #T_50 is in contrast so will be negative of intensity of background, so + for difference
-                
                 if background_val >= 0:
-                    fc_value = -(background_val - (factor * delta_50))
+                    delta_50 = background_val + T_50 #+ 0.01 # add a small offset to avoid issues with contrast of 0
+                    fc_value = -(background_val - (factor * delta_50)) # do we need the last -? 
                 else:
-                    fc_value = (background_val - (factor * delta_50)) 
-                    
+                    delta_50 = T_50 - background_val #T_50 is in contrast so will be negative of intensity of background, so + for difference
+                    fc_value = background_val + (factor * delta_50)
+
                     
             print(f"{stim_key}, {label}, {fc_value}")
             
             condition = {
                 "label": f"{stim_key}_{label}",
                 "stim_key": stim_key,
-                "startVal": round(start_val + random.uniform(-0.3, 0), 8), # start_val
+                "startVal": round(start_val + random.uniform(-0.3, 0), 4), # start_val
                 "maxVal": max_val,
                 "minVal": min_val,
                 "stepSizes": stepsizes,
@@ -227,14 +243,12 @@ for stim_key in stim_keys:
                 "nReversals": expConfig['fixed_params']["reversals"],
                 "nUp": expConfig['fixed_params']["n_up"],
                 "nDown": expConfig['fixed_params']["n_down"],
-                "FC": fc_value,
+                "FC": fc_value, #Intensity or contrast?
             }
 
             experimentConditions.append(condition)
 
 print(f"Len: {len(experimentConditions)} , Experiment conditions: {experimentConditions}")
-
-
 
 if __name__ == "__main__":
     main = Experiment(
