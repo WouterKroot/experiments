@@ -18,8 +18,8 @@ is_test = True
 
 if is_test:
     tracker = False 
-    run_baseline = True 
-    tutorial_done = False   
+    run_baseline = False 
+    tutorial_done = True   
     sub_id = "000"
 else:
     tracker = True 
@@ -155,7 +155,7 @@ if run_baseline:
 
 if baseline_thresholds is None:
     if background_val >= 0:
-        baseline_thresholds = {0.5: -0.87, 0.7: -0.8, 0.99: -0.75}
+        baseline_thresholds = {0.5: -0.86, 0.7: -0.8, 0.99: -0.75}
         baseline_thresholds_norm = {0.5: 0.01, 0.7: 0.02, 0.99: 0.03}
     else:
         baseline_thresholds = {0.5: 0.87, 0.7: 0.85, 0.99: 0.8}
@@ -200,7 +200,10 @@ for stim_key in stim_keys:
             label = cond['label']
             factor = cond['FC_factor']
             
-            if factor > 20:
+            
+            if factor == 10:
+                fc_value = 0.0 # the full contrast of contour colour, negative max of -1 1 depending on background
+            elif factor == 100:
                 fc_value = 1.0 # the full contrast of contour colour, negative max of -1 1 depending on background
                 print(f"Factor > 20 so baseline: {T_50}, fc_value: {fc_value}")
             else:

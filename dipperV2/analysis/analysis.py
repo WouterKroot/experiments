@@ -30,8 +30,8 @@ test = False
 #results_path = this_file.parent.parent.parent.parent / 'Data'
 daystamp = datetime.now().strftime("%Y%m%d")
 timestamp = datetime.now().strftime("%H%M%S")   
-data_path = this_file.parent.parent / 'data' / 'dark_background_300'
-results_path = this_file.parent / 'results' / 'dark_background_300' / daystamp / timestamp
+data_path = this_file.parent.parent / 'data' / 'light_background_300_01' / 'light_background_300_01'
+results_path = this_file.parent / 'results' / 'light_background_300_01' / daystamp / timestamp
 os.makedirs(results_path, exist_ok=True)
 
 if test == True:
@@ -77,17 +77,32 @@ for pid in ids:
 #%%
 # Investigate the raw number of responses and calculate the proportion
 for participant_id, dfs in participant_dfs.items():
-    df = dfs['combined'].copy()
+    df = dfs['main'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
     
     # For 150 ms, bins of max val -0.8, and 10 bins works
     # for 300 ms, bins of max val -0.82 and 
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.87, n_bins=15) # Size of the smallest log stepsize, is 0.0025
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.5, n_bins=25) # Size of the smallest log stepsize, is 0.0025
 
 
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
     participant_dfs[participant_id]['response_summary'] = all_distributions
+
+# %% Staircase convergence per condition
+for pp in ids:
+    pp_df = participant_dfs[pp]['cleaned_df']
+    plt.figure(figsize=(10, 5))
+
+    for name, grp in pp_df.groupby('condition'):
+        p = grp['response'].expanding().mean()
+        plt.plot(p.values, label=name)
+    plt.axhline(0.5, color='k', linestyle='--', label='Target')
+    plt.xlabel('Trial (within condition)')
+    plt.ylabel('P(r=1)')
+    plt.title(f'Staircase Convergence — {pp}')
+    plt.legend()
+    plt.show()
     
 #%%
 fit_results = {}
@@ -213,6 +228,7 @@ for participant_id, dfs in participant_dfs.items():
     .first()
     .to_dict()
     )
+    del fc_raw[0]  # remove baseline (flanker condition 0)
 
     # sort flanker conditions (keys)
     flanker_sorted = sorted(fc_raw.keys())
@@ -338,7 +354,8 @@ plt.grid(True)
 plt.show()
 ##%
 #%% LLM version for relative contrast over threshold:
-allowed_flankers = df_mean['flanker'].unique()[2:]  # Exclude first two flankers
+allowed_flankers = df_mean['flanker'].unique()#[2:]  # Exclude first two flankers
+print(allowed_flankers)
 
 df_mean = (
     agg_plot_df[agg_plot_df['flanker'].isin(allowed_flankers)]
@@ -485,7 +502,7 @@ plt.show()
 #                mean_target=('target07', 'mean'))
 #           .reset_index()
 # )
-allowed_flankers = df_mean['flanker'].unique()[2:]  # Exclude first two flankers
+allowed_flankers = df_mean['flanker'].unique()#[2:]  # Exclude first two flankers
 df_mean = (
     agg_plot_df[agg_plot_df['flanker'].isin(allowed_flankers)].groupby(['condition', 'flanker'])
           .agg(mean_threshold=('threshold07', 'mean'),
@@ -537,7 +554,7 @@ agg_plot_df['norm_TC'] = ((agg_plot_df['threshold07'] - agg_plot_df['target07'])
 
 conditions = agg_plot_df['condition'].unique()
 flankers = agg_plot_df['flanker'].unique()
-allowed_flankers = flankers[2:]
+allowed_flankers = flankers#[2:]
 participants = agg_plot_df['participant'].unique()
 
 for part in participants:
@@ -603,6 +620,11 @@ ax.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
 plt.show()
+
+
+# Plot staircase convergence (cumulative) per condition, averaged across participants
+
+
 
 
 
