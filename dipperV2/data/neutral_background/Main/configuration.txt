@@ -1,0 +1,7 @@
+background = 0.0
+
+single flanker top
+single flanker sides + orthogonal
+triple flanker (9 lines)
+triple flanker orthogonal (to check, 3 lines + orthogonal)
+ 

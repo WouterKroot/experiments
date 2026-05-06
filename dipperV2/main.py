@@ -14,8 +14,8 @@ import numpy as np
 import random
 
 # Set up settings for experiment:
-is_test = True
-background_config = "black" # "white" or "black"
+is_test = False
+background_config = "white" # "white" or "black"
 
 if is_test:
     tracker = False 
@@ -49,6 +49,12 @@ print(f"Using config: {default_config_path}")
 # get output path
 base_dir = expConfig["paths"]["base_output_dir"]
 exp_dir = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"])
+
+#Save the yaml file to the exp_dir
+os.makedirs(exp_dir, exist_ok=True)
+config_save_path = os.path.join(exp_dir, "config_used.yaml")
+with open(config_save_path, "w") as f:
+    yaml.dump(expConfig, f, default_flow_style=False)
 
 if is_test == True:
     baseline_path = os.path.join(base_dir, expConfig["paths"]["exp_output_dir"],expConfig["paths"]["test_output_dir"], expConfig["paths"]["baseline_name"],f"{sub_id}_baseline")

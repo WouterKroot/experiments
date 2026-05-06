@@ -1,0 +1,6 @@
+target
+single_flanker (3 iso)
+triple_flanker (iso)
+triple_flanker orthogonal (all surrounding flankers orthogonal)
+
+NO single flanker orthogonal/ triple flanker orthogonal
