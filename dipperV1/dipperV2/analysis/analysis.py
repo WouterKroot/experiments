@@ -3,6 +3,7 @@
 # extract 0.75 threshold contrast from fit line per condition (dipper function)
 # show that facilitation and inhibition effects can be modelled as multiplicative gain modulation multiplied by input contrast
 #%%
+from psychopy import data
 from pathlib import Path
 import sys
 import scripts.functions 
@@ -22,19 +23,20 @@ utils_path = this_file.parent.parent / 'utils'  # go up 2 levels to dipperV2 the
 sys.path.append(str(utils_path))
 import utils
 
-# Which experiment
-experiment = 'light_background_Orth_300_01'
-
+test = True
 #%%
 #Dynamic paths for data loading
 #output_path = this_file.parent.parent.parent.parent / 'Data'
-#data_path = this_file.parent.parent / 'Output'
-data_path = Path('/vol/mbneufy5/wouter/data/center_surround') / experiment
-output_path = this_file.parent / 'results' / experiment
+data_path = this_file.parent.parent / 'Output'
+output_path = this_file.parent / 'Output' / 'dipperV2' / 'test'
 
+if test == True:
+    exp_path = data_path / 'Test2'
+else:
+    exp_path = data_path / 'Exp'
     
-baseline_path = data_path / 'Baseline'
-main_path = data_path / 'Main'
+baseline_path = exp_path / 'Baseline'
+main_path = exp_path / 'Main'
 eyelink_path = data_path / 'Eyelink'
 
 #%%
@@ -48,6 +50,7 @@ labels = main_df['label'].unique()
 print(f"Found {len(labels)}") # conditions: {labels}")
 
 #%% seperate dataframes per participant
+
 participant_dfs = {}
 for pid in ids:
     # Slice baseline and main data
@@ -71,39 +74,12 @@ for pid in ids:
 for participant_id, dfs in participant_dfs.items():
     df = dfs['combined'].copy()
     cleaned_df, false_positives = utils.clean_df(df)
-    print(participant_id, "cleaned:", len(cleaned_df), cleaned_df['label'].unique())
-
-    
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=1.0, n_bins=20) # Size of the smallest log stepsize, is 0.0025
-    print({k: v.shape for k, v in all_distributions.items()})
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=0.1, n_bins=40) # Size of the smallest log stepsize, is 0.0025
    
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
     participant_dfs[participant_id]['false_positives'] = false_positives
     participant_dfs[participant_id]['response_summary'] = all_distributions
-
-# %% Staircase convergence per condition
-for participant_id in ids:
-    pp_df = participant_dfs[participant_id]['cleaned_df']
-    plt.figure(figsize=(10, 5))
-
-    participant_output_path = os.path.join(output_path, str(participant_id))
-    os.makedirs(participant_output_path, exist_ok=True)
     
-    for name, grp in pp_df.groupby('condition'):
-        p = grp['response'].expanding().mean()
-        plt.plot(p.values, label=name)
-    plt.axhline(0.5, color='k', linestyle='--', label='Target')
-    plt.xlabel('Trial (within condition)')
-    plt.ylabel('P(r=1)')
-    plt.title(f'Staircase Convergence — {participant_id}')
-    plt.legend()
-    save_path = os.path.join(
-    participant_output_path,
-    f"participant_{participant_id}_thresholds_by_condition.png")
-    plt.savefig(save_path, dpi=300)
-    
-    plt.show()
-     
 #%%
 fit_results = {}
 thresholds = {}  # store threshold values
@@ -133,15 +109,14 @@ for participant_id, dfs in participant_dfs.items():
 
         glm_data = df_label[['TC_center', 'Adjusted_yes', 'Total']].copy()
         glm_data = glm_data.dropna()
-        glm_data = glm_data[glm_data['Total'] >= 2]
+        glm_data = glm_data[glm_data['Total'] > 0]
         
         if glm_data.empty:
             continue
         
         total_sum = glm_data['Total'].sum()
         glm_data['prop_weight'] = glm_data['Total'] / total_sum
-        print(label_name, "glm_data rows:", len(glm_data))
-        
+     
         glm_model = smf.glm(
             formula='Adjusted_yes ~ TC_center',
             data=glm_data,
@@ -190,183 +165,97 @@ for participant_id, dfs in participant_dfs.items():
         print(glm_model.summary())
         print(f"{label_name} GLM threshold (P={threshVal}) = {thresh_glm:.3f}")
 
-#%%
-#TODO: check and rewrite
+#%% Self: make sure that this runs for multiple participants as well
+# The binning needs to be done based on the individual participant data
 agg_plot_df = pd.DataFrame()
 for participant_id, dfs in participant_dfs.items():
     plot_data = []
     cleaned_df = dfs['cleaned_df']
 
-    # baseline target 0.5 / target 0.7
+    # baseline target 0.5
     baseline = thresholds[participant_id]['target'][0.5]
     target = thresholds[participant_id]['target'][0.7]
 
-    # Iterate the real label -> threshold entries directly, so cond/mult are
-    # always the ones tied to that label and no cross-product duplicates arise.
-    for label_name, thr in thresholds[participant_id].items():
-        if label_name == 'target' or 0.7 not in thr:
-            continue
+    conditions = cleaned_df['condition'].unique()
+    
+    multipliers = np.sort(cleaned_df['flanker_multiplier'].unique())
+    FC = cleaned_df['FC'].unique()
+    FC = np.sort(FC)
 
-        sub = cleaned_df[cleaned_df['label'] == label_name]
-        if sub.empty:
-            continue
-
-        cond = sub['condition'].iloc[0]
-        mult = int(sub['flanker_multiplier'].iloc[0])
-        fc_x = 1.0 if mult > 900 else baseline * (mult / 100)
-
-        plot_data.append({
-            'participant': participant_id,
-            'condition': cond,
-            'flanker': mult,
-            'FC': fc_x,
-            'threshold07': thr[0.7],
-            'target07': target,
-        })
-
+    for cond in conditions:
+        for mult in multipliers:
+            print(mult)
+            key = f"{cond}_{mult}"
+            if key in thresholds[participant_id] and 0.7 in thresholds[participant_id][key]:
+                t07 = thresholds[participant_id][key][0.7]
+                if mult > 900:
+                    fc_x = 1.0
+                else:
+                    fc_x = baseline * (mult/100)
+                
+                plot_data.append({
+                    'participant': participant_id,
+                    'condition': cond,
+                    'flanker': mult,
+                    'FC': fc_x,
+                    'threshold07': t07,
+                    'target07': target
+                })
     plot_df = pd.DataFrame(plot_data)
     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
+    
+    conditions = plot_df['condition'].unique()
+    plt.figure(figsize=(8,6))
 
-    plt.figure(figsize=(8, 6))
-    for cond in plot_df['condition'].unique():
-        sub = plot_df[plot_df['condition'] == cond].sort_values('FC')
+    for cond in conditions:
+        sub = plot_df[plot_df['condition'] == cond]
         plt.plot(sub['FC'], sub['threshold07'], marker='o', label=cond)
 
     plt.axhline(y=target, color='k', linestyle='--', label='Target (0.7)')
     plt.xlabel("FC")
+    #plt.xlim(0, 0.2)
     plt.ylabel("Adjusted Threshold (0.7)")
     plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()
     plt.grid(True)
-    save_path = os.path.join(
-        participant_output_path,
-        f"participant_{participant_id}_thresholds_by_condition.png"
-    )
+    save_path = os.path.join(participant_output_path, f"participant_{participant_id}_thresholds_by_condition.png")
     plt.savefig(save_path, dpi=300)
     plt.show()
+    
+    
     plt.close()
-#%% Self: make sure that this runs for multiple participants as well
-# The binning needs to be done based on the individual participant data
-# agg_plot_df = pd.DataFrame()
-# for participant_id, dfs in participant_dfs.items():
-#     plot_data = []
-#     cleaned_df = dfs['cleaned_df']
-
-#     # baseline target 0.5
-#     baseline = thresholds[participant_id]['target'][0.5]
-#     target = thresholds[participant_id]['target'][0.7]
-
-#     conditions = cleaned_df['condition'].unique()
-    
-#     multipliers = np.sort(cleaned_df['flanker_multiplier'].unique())
-#     FC = cleaned_df['FC'].unique()
-#     FC = np.sort(FC)
-
-#     for cond in conditions:
-#         for mult in multipliers:
-#             print(mult)
-#             key = f"{cond}_{mult}"
-#             if key in thresholds[participant_id] and 0.7 in thresholds[participant_id][key]:
-#                 t07 = thresholds[participant_id][key][0.7]
-#                 if mult > 900:
-#                     fc_x = 1.0
-#                 else:
-#                     fc_x = baseline * (mult/100)
-                
-#                 plot_data.append({
-#                     'participant': participant_id,
-#                     'condition': cond,
-#                     'flanker': mult,
-#                     'FC': fc_x,
-#                     'threshold07': t07,
-#                     'target07': target
-#                 })
-#     plot_df = pd.DataFrame(plot_data)
-#     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
-    
-#     conditions = plot_df['condition'].unique()
-#     plt.figure(figsize=(8,6))
-
-#     for cond in conditions:
-#         sub = plot_df[plot_df['condition'] == cond]
-#         plt.plot(sub['FC'], sub['threshold07'], marker='o', label=cond)
-
-#     plt.axhline(y=target, color='k', linestyle='--', label='Target (0.7)')
-#     plt.xlabel("FC")
-#     #plt.xlim(0, 0.2)
-#     plt.ylabel("Adjusted Threshold (0.7)")
-#     plt.title(f"Participant: {participant_id} Thresholds by Condition")
-#     plt.legend()
-#     plt.grid(True)
-#     save_path = os.path.join(participant_output_path, f"participant_{participant_id}_thresholds_by_condition.png")
-#     plt.savefig(save_path, dpi=300)
-#     plt.show()
-    
-    
-#     plt.close()
 # %%
 df_mean = (
-    agg_plot_df.groupby(['condition', 'flanker'], as_index=False)
+    agg_plot_df.groupby(['condition', 'flanker'])
           .agg(mean_threshold=('threshold07', 'mean'),
                std_threshold=('threshold07', 'std'),
                n=('threshold07', 'count'),
                mean_FC=('FC', 'mean'),
                mean_target=('target07', 'mean'))
+          .reset_index()
 )
 df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
 
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(8,6))
+
 for cond in df_mean['condition'].unique():
-    sub = df_mean[df_mean['condition'] == cond].sort_values('mean_FC')
-    plt.errorbar(
-        sub['mean_FC'],
+    sub = df_mean[df_mean['condition'] == cond]
+
+    plt.errorbar( 
+        sub['mean_FC'],  # assuming baseline target 0.5
         sub['mean_threshold'],
-        yerr=sub['sem'],
+        yerr=sub['sem'],      # optional: remove if no error bars
         marker='o',
         capsize=3,
-        label=cond,
+        label=cond
     )
-
 plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
 plt.xlabel("FC")
 plt.ylabel("Mean Adjusted Threshold (0.7)")
+#plt.xlim(0, 0.2)
 plt.title("Mean Thresholds Across Participants by Condition")
 plt.legend()
 plt.grid(True)
 plt.savefig(os.path.join(output_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
-plt.close()
-# df_mean = (
-#     agg_plot_df.groupby(['condition', 'flanker'])
-#           .agg(mean_threshold=('threshold07', 'mean'),
-#                std_threshold=('threshold07', 'std'),
-#                n=('threshold07', 'count'),
-#                mean_FC=('FC', 'mean'),
-#                mean_target=('target07', 'mean'))
-#           .reset_index()
-# )
-# df_mean['sem'] = df_mean['std_threshold'] / np.sqrt(df_mean['n'])
-
-# plt.figure(figsize=(8,6))
-
-# for cond in df_mean['condition'].unique():
-#     sub = df_mean[df_mean['condition'] == cond]
-
-#     plt.errorbar( 
-#         sub['mean_FC'],  # assuming baseline target 0.5
-#         sub['mean_threshold'],
-#         yerr=sub['sem'],      # optional: remove if no error bars
-#         marker='o',
-#         capsize=3,
-#         label=cond
-#     )
-# plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
-# plt.xlabel("FC")
-# plt.ylabel("Mean Adjusted Threshold (0.7)")
-# #plt.xlim(0, 0.2)
-# plt.title("Mean Thresholds Across Participants by Condition")
-# plt.legend()
-# plt.grid(True)
-# plt.savefig(os.path.join(output_path, "mean_thresholds_by_condition.png"), dpi=300)
-# plt.show()
 # %%

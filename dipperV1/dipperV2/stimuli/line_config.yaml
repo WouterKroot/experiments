@@ -1,0 +1,132 @@
+stimuli: 
+  target:
+    - type: line
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+
+  single_flanker:
+    - type: line
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+
+  double_flanker:
+    - type: line
+      pos: [-20.0, 120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [20.0, 120.0]
+      angle: 90
+      length: 80
+
+    - type: line
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+
+  triple_flanker:
+    - type: line
+      pos: [-20.0, 120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, 120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [20.0, 120.0]
+      angle: 90
+      length: 80
+
+    - type: line
+      pos: [-20.0, 0.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, 0.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [20.0, 0.0]
+      angle: 90
+      length: 80
+
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [0.0, -120.0]
+      angle: 90
+      length: 80
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 90
+      length: 80
+
+  triple_flanker_orth:
+    - type: line
+      pos: [-20.0, 120.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [0.0, 120.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [20.0, 120.0]
+      angle: 0
+      length: 80
+
+    - type: line
+      pos: [-20.0, 0.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [0.0, 0.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [20.0, 0.0]
+      angle: 0
+      length: 80
+
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [0.0, -120.0]
+      angle: 0
+      length: 80
+    - type: line
+      pos: [-20.0, -120.0]
+      angle: 0
+      length: 80

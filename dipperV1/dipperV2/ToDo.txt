@@ -1,0 +1,12 @@
+To implement in the code:
+now each trials creates a psydat file, this file should only be created once and saved in it's own folder inside the respective path to the csv file.
+
+Talk to Timo about time, the actual experiment can only be 30 mins long.
+null trials = 30 % of time
+preparation and eyelink = 15 mins
+breaks are in total 10 mins
+
+So if exp = 30, null = 3 mins
+prep is 15 mins and break is around 7 mins, we total 55 mins
+
+each staircase condition has a minimum of 50 trials

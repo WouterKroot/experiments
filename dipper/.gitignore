@@ -1,0 +1,6 @@
+# Ignore data and sensitive stuff
+Output/
+participants/
+*.psydat
+*.log
+.DS_Store

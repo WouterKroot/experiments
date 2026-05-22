@@ -4,6 +4,7 @@ import os
 import math
 import numpy as np
 import pandas as pd
+from psychopy import visual
 
 def SubNumber(filename):
     with open(filename, 'r', encoding='utf-8-sig') as file:
@@ -171,116 +172,55 @@ def clean_df(df):
     # Default flanker multiplier = 0 for 'target'
     cleaned_df['flanker_multiplier'] = 0  
     # For non-targets, extract numeric suffix and convert to int
-    mask = ~cleaned_df['label'].str.endswith('target')
+    mask = cleaned_df['label'] != 'target'
     cleaned_df.loc[mask, 'flanker_multiplier'] = (
         cleaned_df.loc[mask, 'label'].str.rsplit('_', n=1).str[1].astype(int)
     )
     return cleaned_df, false_positives
 
-# def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
-#     """
-#     Returns the distribution of response=1 vs response=0 per binned intensity (TC)
-#     for every unique label, including adjusted proportion based on false positives.
-
-#     Parameters
-#     ----------
-#     df : pandas.DataFrame
-#         Must contain columns 'label', 'TC', 'response', and 'condition'.
-#     false_positive_dict : dict
-#         Dictionary with keys = condition, containing 'false_positive_rate'.
-#     max_val : float
-#         Maximum TC value to include in bins.
-#     n_bins : int
-#         Number of bins to divide the TC range into.
-
-#     Returns
-#     -------
-#     all_distributions : dict
-#         Dictionary of label_name -> DataFrame with columns:
-#         ['TC_bin', 'Response_0', 'Response_1', 'Proportion_yes', 'Adjusted_yes']
-#     combined_df : pandas.DataFrame
-#         All label distributions concatenated with 'label' column.
-#     """
-
-#     all_distributions = {}
-
-#     # Filter TC range
-#     df = df[(df['TC'] >= 0) & (df['TC'] <= max_val)].copy()
-
-#     # Define bins
-#     bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
-#     df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
-
-#     combined_list = []
-
-#     for label_name in df['label'].unique():
-#         label_df = df[df['label'] == label_name]
-#         condition = label_df['condition'].iloc[0]  # use condition to get fp
-
-#         # Get false positive rate for this condition
-#         fp_rate = false_positive_dict.get(condition, {}).get('false_positive_rate', 0.0)
-
-#         data = []
-#         for b in label_df['TC_bin'].cat.categories:
-#             bin_df = label_df[label_df['TC_bin'] == b]
-#             n0 = (bin_df['response'] == 0).sum()
-#             n1 = (bin_df['response'] == 1).sum()
-#             total = n0 + n1
-#             proportion_yes = n1 / total if total > 0 else np.nan
-#             adjusted_yes = (proportion_yes - fp_rate) / (1 - fp_rate) if total > 0 else np.nan
-#             adjusted_yes = np.clip(adjusted_yes, 0, 1)  # keep in [0,1]
-
-#             data.append({
-#                 'TC_bin': b,
-#                 'Response_0': n0,
-#                 'Response_1': n1,
-#                 'Proportion_yes': proportion_yes,
-#                 'Adjusted_yes': adjusted_yes
-#             })
-
-#         counts = pd.DataFrame(data)
-#         all_distributions[label_name] = counts
-
-#         counts['label'] = label_name
-#         combined_list.append(counts)
-
-#         print(f"\nLabel: {label_name}")
-#         print(counts)
-
-#     combined_df = pd.concat(combined_list, ignore_index=True)
-#     return all_distributions, combined_df
 def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
     """
-    ... (docstring unchanged except:) ...
+    Returns the distribution of response=1 vs response=0 per binned intensity (TC)
+    for every unique label, including adjusted proportion based on false positives.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain columns 'label', 'TC', 'response', and 'condition'.
+    false_positive_dict : dict
+        Dictionary with keys = condition, containing 'false_positive_rate'.
     max_val : float
-        Upper |TC| cap applied only to the RETURNED distributions.
-        Bin edges are inferred from the valid |TC| data range.
+        Maximum TC value to include in bins.
+    n_bins : int
+        Number of bins to divide the TC range into.
+
+    Returns
+    -------
+    all_distributions : dict
+        Dictionary of label_name -> DataFrame with columns:
+        ['TC_bin', 'Response_0', 'Response_1', 'Proportion_yes', 'Adjusted_yes']
+    combined_df : pandas.DataFrame
+        All label distributions concatenated with 'label' column.
     """
+
     all_distributions = {}
 
-    df = df.copy()
-    # Some experiments flip the background contrast, giving negative TC.
-    # The perceptually meaningful quantity is the magnitude, so bin on |TC|.
-    df['TC_abs'] = df['TC'].abs()
+    # Filter TC range
+    df = df[(df['TC'] >= 0) & (df['TC'] <= max_val)].copy()
 
-    df = df[df['TC_abs'].notna()].copy()
-    if df.empty:
-        raise ValueError("No trials with finite TC.")
-
-    lo, hi = df['TC_abs'].min(), df['TC_abs'].max()
-    if not (np.isfinite(lo) and np.isfinite(hi)):
-        raise ValueError("TC has no finite values.")
-    if lo == hi:
-        raise ValueError(f"All |TC| values equal {lo}; cannot build {n_bins} bins.")
-
-    bins = np.linspace(lo, hi, n_bins + 1)
-    df['TC_bin'] = pd.cut(df['TC_abs'], bins=bins, include_lowest=True)
+    # Define bins
+    bins = np.linspace(df['TC'].min(), df['TC'].max(), n_bins + 1)
+    df['TC_bin'] = pd.cut(df['TC'], bins=bins, include_lowest=True)
 
     combined_list = []
+
     for label_name in df['label'].unique():
         label_df = df[df['label'] == label_name]
-        condition = label_df['condition'].iloc[0]
+        condition = label_df['condition'].iloc[0]  # use condition to get fp
+
+        # Get false positive rate for this condition
         fp_rate = false_positive_dict.get(condition, {}).get('false_positive_rate', 0.0)
+
         data = []
         for b in label_df['TC_bin'].cat.categories:
             bin_df = label_df[label_df['TC_bin'] == b]
@@ -289,7 +229,8 @@ def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
             total = n0 + n1
             proportion_yes = n1 / total if total > 0 else np.nan
             adjusted_yes = (proportion_yes - fp_rate) / (1 - fp_rate) if total > 0 else np.nan
-            adjusted_yes = np.clip(adjusted_yes, 0, 1)
+            adjusted_yes = np.clip(adjusted_yes, 0, 1)  # keep in [0,1]
+
             data.append({
                 'TC_bin': b,
                 'Response_0': n0,
@@ -297,14 +238,15 @@ def response_distribution(df, false_positive_dict, max_val=1.0, n_bins=30):
                 'Proportion_yes': proportion_yes,
                 'Adjusted_yes': adjusted_yes
             })
+
         counts = pd.DataFrame(data)
-
-        counts = counts[counts['TC_bin'].apply(lambda iv: iv.left < max_val)].copy()
-
         all_distributions[label_name] = counts
+
         counts['label'] = label_name
         combined_list.append(counts)
+
         print(f"\nLabel: {label_name}")
         print(counts)
+
     combined_df = pd.concat(combined_list, ignore_index=True)
     return all_distributions, combined_df
