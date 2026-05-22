@@ -12,7 +12,7 @@ fixed_params:
   t_break: 5
   n_up: 1
   n_down: 1
-  start_val: -0.5 # is the contrast the staircase starts with not the intensity, can stay -0.5 for both background conditions
+  start_val: -0.4 # is the contrast the staircase starts with not the intensity, can stay -0.5 for both background conditions
   background_val: -0.8
   step_sizes: [0.1,
               0.05,

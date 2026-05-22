@@ -7,7 +7,6 @@ from psychopy import data
 from pathlib import Path
 import sys
 import seaborn as sns
-import scripts.functions 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,8 +29,11 @@ test = False
 #results_path = this_file.parent.parent.parent.parent / 'Data'
 daystamp = datetime.now().strftime("%Y%m%d")
 timestamp = datetime.now().strftime("%H%M%S")   
-data_path = this_file.parent.parent / 'data' / 'light_background_300_01' / 'light_background_300_01'
-results_path = this_file.parent / 'results' / 'light_background_300_01' / daystamp / timestamp
+data_path = this_file.parent.parent / 'data' / 'light_background_Orth_300_01'
+results_path = this_file.parent / 'results' / 'light_background_Orth_300_01' / daystamp
+# data_path = this_file.parent.parent / 'data' / 'light_background_300_01'
+# results_path = this_file.parent / 'results' / 'light_background_300_01' / daystamp / timestamp
+
 os.makedirs(results_path, exist_ok=True)
 
 if test == True:
@@ -82,7 +84,7 @@ for participant_id, dfs in participant_dfs.items():
     
     # For 150 ms, bins of max val -0.8, and 10 bins works
     # for 300 ms, bins of max val -0.82 and 
-    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.5, n_bins=25) # Size of the smallest log stepsize, is 0.0025
+    all_distributions, combined_df = utils.response_distribution(cleaned_df, false_positives, max_val=-0.78, n_bins=40) # Size of the smallest log stepsize, is 0.0025
 
 
     participant_dfs[participant_id]['cleaned_df'] = cleaned_df
@@ -294,6 +296,7 @@ for participant_id, dfs in participant_dfs.items():
     #                 'threshold07': t07,
     #                 'target07': target
     #             })
+    #%%
     plot_df = pd.DataFrame(plot_data)
     agg_plot_df = pd.concat([agg_plot_df, plot_df], ignore_index=True)
     
@@ -306,7 +309,7 @@ for participant_id, dfs in participant_dfs.items():
 
     plt.axhline(y=target, color='k', linestyle='--', label='Target (0.7)')
     plt.xlabel("FC")
-    plt.xlim(-1.0, 1)
+    plt.xlim(-0.8, -0.7)
     plt.ylabel("Adjusted Threshold (0.7)")
     plt.title(f"Participant: {participant_id} Thresholds by Condition")
     plt.legend()
@@ -353,6 +356,24 @@ plt.grid(True)
 #plt.savefig(os.path.join(results_path, "mean_thresholds_by_condition.png"), dpi=300)
 plt.show()
 ##%
+#%% self
+plt.figure(figsize=(8,6))
+plt.axhline(y=df_mean['mean_target'].mean(), color='k', linestyle='--', label='Mean Target (0.7)')
+for cond in df_mean['condition'].unique():
+    sub = df_mean[df_mean['condition'] == cond]
+    plt.errorbar( 
+        sub['flanker'],  # use the label (50, 100, 150, 300) instead of FC value
+        sub['mean_threshold'],
+        yerr=sub['sem'],
+        marker='o',
+        capsize=3,
+        label=cond
+    )
+plt.xlabel('Flanker multiplier')
+plt.ylabel('Detection threshold')
+plt.title('Detection threshold as a function of flanker distance')
+plt.legend(title='Stimulus condition')
+    
 #%% LLM version for relative contrast over threshold:
 allowed_flankers = df_mean['flanker'].unique()#[2:]  # Exclude first two flankers
 print(allowed_flankers)
