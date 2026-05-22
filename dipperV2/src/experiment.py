@@ -525,7 +525,7 @@ class Experiment:
         allIntensities_norm_transformed = utils.stim_from_abs_contrast(allIntensities_norm, bg)
         
         allIntensities = thisDat['TC']
-        threshold_val = allIntensities.median()
+        threshold_val = allIntensities[-25:].median()
         #threshold_val_norm = allIntensities_norm.median()
         threshold_val_norm_transformed = allIntensities_norm_transformed.median()
         
