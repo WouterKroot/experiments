@@ -129,6 +129,7 @@ class Experiment:
                 fb_stim = self.myWin.feedback_no       
 
             self.myWin.drawOrder(fb_stim)
+            self.myWin.win.flip()
             core.wait(2/60)
             
             self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{flankerIntensity},{targetIntensity},{flankerContrast},{targetContrast},{thisResp},{thisRT}\n")
@@ -342,162 +343,485 @@ class Experiment:
         event.waitKeys(keyList=['right', 'left', 'num_4', 'num_6'])
         
     def run_main(self, dataFile):
-        breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
+
+        breaks, totalTrials = self.getBreaks()
         stairs = self.stairs
-        totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials) # staircase trials
-    
+        totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials)
+
         middle_index = len(breaks) // 2
         middle_trial = breaks[middle_index] if len(breaks) > 0 else -1
 
         print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
 
-        trialClock = core.Clock()
-        thisTrial = 0         # counts all displayed trials (including nulls)
-        stairTrialCount = 0   # counts only trials added to staircase
+        thisTrial = 0
+        stairTrialCount = 0
 
         bg = self.myWin.background_val
-        
-        # Loop until all staircase trials are completed
-        while stairTrialCount < totalStaircaseTrials: 
+
+        # ==========================================
+        # MAIN LOOP
+        # ==========================================
+        while stairTrialCount < totalStaircaseTrials:
+
             self.myWin.checkQuit()
+
             print('===============')
-            #print(f"Total trials with null: {stairs.totalTrials},\n total staircase trials (no null): {totalStaircaseTrials}, total for breaks: {totalTrials}")
-            
-            print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
-            #print(f"Total trials from the staircase: {stairs.totalTrials}")
-            print(f"Total trials no null, totalStaircaseTrials: {totalStaircaseTrials}")
+            print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}")
             print(f"Trial: {thisTrial}, staircase count: {stairTrialCount}")
-            
-            # --- Random null trial ---
+
+            # ==========================================
+            # NULL TRIAL?
+            # ==========================================
             isNull = np.random.random() <= self.nullOdds
-            
+
             if isNull:
+
                 print("Null trial")
+
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
-                thisLabel = condition['label']
-                thisLabel += '_null'
-                targetIntensity = None # background (invisible)
+
+                thisLabel = condition['label'] + '_null'
+
+                targetIntensity = None
+
             else:
-                stairs.next()  
+
+                stairs.next()
+
                 currentStair = stairs.currentStaircase
                 condition = currentStair.condition
+
                 thisLabel = condition['label']
+
                 targetIntensity = float(currentStair.intensity)
-            
-            # --- Handle breaks ---
+
+            # ==========================================
+            # BREAKS
+            # ==========================================
             if thisTrial in breaks:
+
                 b_idx = np.where(breaks == thisTrial)[0][0]
+
                 middle_break = (thisTrial == middle_trial)
+
                 self.doBreak(b=b_idx, middle=middle_break)
-                # --- Save staircase periodically ---
+
                 os.makedirs(self.path, exist_ok=True)
-                psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
-                stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
 
-            # --- Eye tracker start ---
+                psydat_path = os.path.join(
+                    self.path,
+                    f"{self.id}_main.psydat"
+                )
+
+                stairs.saveAsPickle(
+                    psydat_path,
+                    fileCollisionMethod='overwrite'
+                )
+
+            # ==========================================
+            # START EYELINK RECORDING
+            # ==========================================
             if self.eyeTracker.doTracking:
-                self.eyeTracker.tracker.startRecording(1, 1, 1, 1)
 
-            # --- Prepare stimulus ---
-            lines = []
-            flankerIntensity = round(float(currentStair.condition['FC']), 8)
+                self.eyeTracker.tracker.startRecording(
+                    1, 1, 1, 1
+                )
+
+            # ==========================================
+            # PREPARE STIMULUS
+            # ==========================================
+            flankerIntensity = round(
+                float(currentStair.condition['FC']),
+                8
+            )
+
             stim_key = condition['stim_key']
+
             stimulus = self.myWin.stimuli[stim_key]
-            
-            targetContrast = utils.abs_contrast_from_bg(targetIntensity, bg)
-            flankerContrast = utils.abs_contrast_from_bg(flankerIntensity, bg)
-            
+
+            targetContrast = utils.abs_contrast_from_bg(
+                targetIntensity,
+                bg
+            )
+
+            flankerContrast = utils.abs_contrast_from_bg(
+                flankerIntensity,
+                bg
+            )
+
             lines = []
+
             for entry in stimulus['components']:
-                # Determine if this is the target or a flanker
+
                 is_target = entry.get('type') == 'target'
+                line = entry['line_obj']
 
-                # --- Null trial: target should be invisible ---
+                line_copy = line
+                line_copy = line  # (or deepcopy if needed)
+
                 if isNull and is_target:
+
                     if bg >= 0:
-                       entry['line_obj'].contrast = -bg 
+                        line_copy.contrast = -bg
                     else:
-                        entry['line_obj'].contrast = bg  # exact background
+                        line_copy.contrast = bg
+
                 else:
-                    # Normal trial or flanker: assign proper contrast
+
                     if is_target:
-                        entry['line_obj'].contrast = targetIntensity
+                        line_copy.contrast = targetIntensity
                     else:
-                        entry['line_obj'].contrast = flankerIntensity
+                        line_copy.contrast = flankerIntensity
 
-                lines.append(entry['line_obj'])
+                lines.append(line_copy)
 
-            print(f'Label: {thisLabel}, target intensity (TC): {targetIntensity}, flanker intensity (FC): {flankerIntensity}, target contrast: {targetContrast}, flanker contrast: {flankerContrast}')
-            # --- Draw fixation ---
-            self.myWin.diode.color *= -1
-            self.myWin.drawOrder(self.myWin.fixation)
-            core.wait(self.myWin.t_fixation)
-            self.blinkDiode()
+            print(
+                f'Label: {thisLabel}, '
+                f'target intensity (TC): {targetIntensity}, '
+                f'flanker intensity (FC): {flankerIntensity}, '
+                f'target contrast: {targetContrast}, '
+                f'flanker contrast: {flankerContrast}'
+            )
 
-            # --- Draw stimulus ---
-            self.eyeTracker.stimOnset(thisTrial, thisLabel, targetIntensity)
-            self.myWin.diode.color *= -1
-            self.myWin.drawOrder(lines)
-            core.wait(self.myWin.t_stim)
-            self.blinkDiode()
+            # ==========================================
+            # CLEAR KEYBOARD BUFFER
+            # ==========================================
+            event.clearEvents()
 
-            # --- Collect response ---
-            trialClock.reset()
-            self.myWin.drawOrder(self.myWin.blank)
-            allKeys = event.waitKeys(maxWait=self.myWin.t_response,
-                                    keyList=['left','num_4','right','num_6','q','escape'])
-            thisRT = trialClock.getTime()
-            if thisRT < self.myWin.t_response:
-                core.wait(self.myWin.t_response - thisRT)
+            # ==========================================
+            # FIXATION PERIOD
+            # ==========================================
+            fixationClock = core.Clock()
+            # diode OFF during fixation
+            self.diodeOff()
+            while fixationClock.getTime() < self.myWin.t_fixation:
 
-            if allKeys:
-                for key in allKeys:
-                    if key in ['left','num_4']:
-                        thisResp = 0
-                    elif key in ['right','num_6']:
-                        thisResp = 1
-                    else:
+                self.myWin.drawOrder(self.myWin.fixation)
+
+                self.myWin.checkQuit()
+
+            # ==========================================
+            # STIMULUS PERIOD
+            # ==========================================
+            stimClock = core.Clock()
+            self.diodeOn()
+            # send EyeLink message exactly on flip
+            if self.eyeTracker.doTracking:
+
+                self.myWin.win.callOnFlip(
+                    self.eyeTracker.stimOnset,
+                    thisTrial,
+                    thisLabel,
+                    targetIntensity
+                )
+
+            while stimClock.getTime() < self.myWin.t_stim:
+
+                # draw stimulus
+                self.myWin.drawOrder(lines)
+
+                self.myWin.checkQuit()
+
+            # ==========================================
+            # RESPONSE PERIOD
+            # ==========================================
+            responseClock = core.Clock()
+
+            thisResp = 0
+            thisRT = 99
+
+            responded = False
+
+            valid_keys = [
+                'left',
+                'num_4',
+                'right',
+                'num_6'
+            ]
+
+            quit_keys = ['q', 'escape']
+
+            self.diodeOff()
+            while responseClock.getTime() < self.myWin.t_response:
+
+                # blank screen
+                self.myWin.drawOrder(self.myWin.blank)
+
+                keys = event.getKeys(
+                    keyList=valid_keys + quit_keys,
+                    timeStamped=responseClock
+                )
+
+                if keys and not responded:
+
+                    key, t = keys[0]
+
+                    if key in quit_keys:
+
                         self.eyeTracker.closeTracker()
                         core.quit()
-            else:
-                thisResp = 0
-                thisRT = 99
 
+                    if key in ['left', 'num_4']:
+
+                        thisResp = 0
+
+                    elif key in ['right', 'num_6']:
+
+                        thisResp = 1
+
+                    thisRT = round(t, 5)
+
+                    responded = True
+
+                self.myWin.checkQuit()
+
+            # ==========================================
+            # FEEDBACK
+            # ==========================================
             if thisRT == 99:
-                fb_stim = self.myWin.feedback_nan      
-            elif thisResp == 1:
-                fb_stim = self.myWin.feedback_yes     
-            else:
-                fb_stim = self.myWin.feedback_no       
 
-            self.myWin.drawOrder(fb_stim)
-            core.wait(2/60)
-            
-            # --- Log response ---
-            self.eyeTracker.logResponse(thisResp, thisRT)
-            self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{flankerContrast},{targetContrast},{thisResp},{thisRT}\n")
+                fb_stim = self.myWin.feedback_nan
+
+            elif thisResp == 1:
+
+                fb_stim = self.myWin.feedback_yes
+
+            else:
+
+                fb_stim = self.myWin.feedback_no
+
+            fbClock = core.Clock()
+
+            while fbClock.getTime() < (2 / 60):
+
+                self.myWin.drawOrder(fb_stim)
+
+            # ==========================================
+            # LOG RESPONSE
+            # ==========================================
+            self.eyeTracker.logResponse(
+                thisResp,
+                thisRT
+            )
+
+            self.dataFile.write(
+                f"{self.id},"
+                f"{thisTrial},"
+                f"{thisLabel},"
+                f"{condition['FC']},"
+                f"{currentStair.intensity},"
+                f"{flankerContrast},"
+                f"{targetContrast},"
+                f"{thisResp},"
+                f"{thisRT}\n"
+            )
+
             self.dataFile.flush()
-            
-            # --- Add response only if not null ---
+
+            # ==========================================
+            # UPDATE STAIRCASE
+            # ==========================================
             if not isNull:
+
                 stairs.addResponse(thisResp)
+
                 stairTrialCount += 1
 
-            # Increment total trial counter for breaks / logging
+            # increment displayed trial count
             thisTrial += 1
 
+            # ==========================================
+            # STOP EYELINK RECORDING
+            # ==========================================
             if self.eyeTracker.doTracking:
+
                 self.eyeTracker.tracker.stopRecording()
 
-        # --- End of experiment ---
+        # ==========================================
+        # END EXPERIMENT
+        # ==========================================
         self.myWin.checkQuit()
+
         self.myWin.end()
+
         self.eyeTracker.closeTracker()
-        
+
         os.makedirs(self.path, exist_ok=True)
-        psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
-        stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
+
+        psydat_path = os.path.join(
+            self.path,
+            f"{self.id}_main.psydat"
+        )
+
+        stairs.saveAsPickle(
+            psydat_path,
+            fileCollisionMethod='overwrite'
+        )
+     #old version, problem with the diode being stalled by core.wait() better for response collection to rewrite
+
+    # def run_main(self, dataFile):
+    #     breaks, totalTrials = self.getBreaks() #total trials with null trials for correct breaks
+    #     stairs = self.stairs
+    #     totalStaircaseTrials = int(len(self.myConds) * stairs.nTrials) # staircase trials
+    
+    #     middle_index = len(breaks) // 2
+    #     middle_trial = breaks[middle_index] if len(breaks) > 0 else -1
+
+    #     print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
+
+    #     trialClock = core.Clock()
+    #     thisTrial = 0         # counts all displayed trials (including nulls)
+    #     stairTrialCount = 0   # counts only trials added to staircase
+
+    #     bg = self.myWin.background_val
+        
+    #     # Loop until all staircase trials are completed
+    #     while stairTrialCount < totalStaircaseTrials: 
+    #         self.myWin.checkQuit()
+    #         print('===============')
+    #         #print(f"Total trials with null: {stairs.totalTrials},\n total staircase trials (no null): {totalStaircaseTrials}, total for breaks: {totalTrials}")
+            
+    #         print(f"Total trials with null: {totalTrials}, Breaks at trials: {breaks}, middle index: {middle_index}, middle trial: {middle_trial}")
+    #         #print(f"Total trials from the staircase: {stairs.totalTrials}")
+    #         print(f"Total trials no null, totalStaircaseTrials: {totalStaircaseTrials}")
+    #         print(f"Trial: {thisTrial}, staircase count: {stairTrialCount}")
+            
+    #         # --- Random null trial ---
+    #         isNull = np.random.random() <= self.nullOdds
+            
+    #         if isNull:
+    #             print("Null trial")
+    #             currentStair = stairs.currentStaircase
+    #             condition = currentStair.condition
+    #             thisLabel = condition['label']
+    #             thisLabel += '_null'
+    #             targetIntensity = None # background (invisible)
+    #         else:
+    #             stairs.next()  
+    #             currentStair = stairs.currentStaircase
+    #             condition = currentStair.condition
+    #             thisLabel = condition['label']
+    #             targetIntensity = float(currentStair.intensity)
+            
+    #         # --- Handle breaks ---
+    #         if thisTrial in breaks:
+    #             b_idx = np.where(breaks == thisTrial)[0][0]
+    #             middle_break = (thisTrial == middle_trial)
+    #             self.doBreak(b=b_idx, middle=middle_break)
+    #             # --- Save staircase periodically ---
+    #             os.makedirs(self.path, exist_ok=True)
+    #             psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
+    #             stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
+
+    #         # --- Eye tracker start ---
+    #         if self.eyeTracker.doTracking:
+    #             self.eyeTracker.tracker.startRecording(1, 1, 1, 1)
+
+    #         # --- Prepare stimulus ---
+    #         lines = []
+    #         flankerIntensity = round(float(currentStair.condition['FC']), 8)
+    #         stim_key = condition['stim_key']
+    #         stimulus = self.myWin.stimuli[stim_key]
+            
+    #         targetContrast = utils.abs_contrast_from_bg(targetIntensity, bg)
+    #         flankerContrast = utils.abs_contrast_from_bg(flankerIntensity, bg)
+            
+    #         lines = []
+    #         for entry in stimulus['components']:
+    #             # Determine if this is the target or a flanker
+    #             is_target = entry.get('type') == 'target'
+
+    #             # --- Null trial: target should be invisible ---
+    #             if isNull and is_target:
+    #                 if bg >= 0:
+    #                    entry['line_obj'].contrast = -bg 
+    #                 else:
+    #                     entry['line_obj'].contrast = bg  # exact background
+    #             else:
+    #                 # Normal trial or flanker: assign proper contrast
+    #                 if is_target:
+    #                     entry['line_obj'].contrast = targetIntensity
+    #                 else:
+    #                     entry['line_obj'].contrast = flankerIntensity
+
+    #             lines.append(entry['line_obj'])
+
+    #         print(f'Label: {thisLabel}, target intensity (TC): {targetIntensity}, flanker intensity (FC): {flankerIntensity}, target contrast: {targetContrast}, flanker contrast: {flankerContrast}')
+    #         # --- Draw fixation ---
+    #         #self.myWin.diode.color *= -1
+    #         self.myWin.drawOrder(self.myWin.fixation)
+    #         core.wait(self.myWin.t_fixation)
+    #         self.blinkDiode()
+
+    #         # --- Draw stimulus ---
+    #         self.eyeTracker.stimOnset(thisTrial, thisLabel, targetIntensity)
+    #         #self.myWin.diode.color *= -1
+    #         diodeOn()
+    #         self.myWin.diode.draw()
+
+    #         self.myWin.drawOrder(lines)
+    #         core.wait(self.myWin.t_stim)
+    #         #self.blinkDiode()
+    #         diodeOff()
+    #         self.myWin.diode.draw()
+
+    #         # --- Collect response ---
+    #         trialClock.reset()
+    #         self.myWin.drawOrder(self.myWin.blank)
+    #         allKeys = event.waitKeys(maxWait=self.myWin.t_response,
+    #                                 keyList=['left','num_4','right','num_6','q','escape'])
+    #         thisRT = trialClock.getTime()
+    #         if thisRT < self.myWin.t_response:
+    #             core.wait(self.myWin.t_response - thisRT)
+
+    #         if allKeys:
+    #             for key in allKeys:
+    #                 if key in ['left','num_4']:
+    #                     thisResp = 0
+    #                 elif key in ['right','num_6']:
+    #                     thisResp = 1
+    #                 else:
+    #                     self.eyeTracker.closeTracker()
+    #                     core.quit()
+    #         else:
+    #             thisResp = 0
+    #             thisRT = 99
+
+    #         if thisRT == 99:
+    #             fb_stim = self.myWin.feedback_nan      
+    #         elif thisResp == 1:
+    #             fb_stim = self.myWin.feedback_yes     
+    #         else:
+    #             fb_stim = self.myWin.feedback_no       
+
+    #         self.myWin.drawOrder(fb_stim)
+    #         core.wait(2/60)
+            
+    #         # --- Log response ---
+    #         self.eyeTracker.logResponse(thisResp, thisRT)
+    #         self.dataFile.write(f"{self.id},{thisTrial},{thisLabel},{condition['FC']},{currentStair.intensity},{flankerContrast},{targetContrast},{thisResp},{thisRT}\n")
+    #         self.dataFile.flush()
+            
+    #         # --- Add response only if not null ---
+    #         if not isNull:
+    #             stairs.addResponse(thisResp)
+    #             stairTrialCount += 1
+
+    #         # Increment total trial counter for breaks / logging
+    #         thisTrial += 1
+
+    #         if self.eyeTracker.doTracking:
+    #             self.eyeTracker.tracker.stopRecording()
+
+    #     # --- End of experiment ---
+    #     self.myWin.checkQuit()
+    #     self.myWin.end()
+    #     self.eyeTracker.closeTracker()
+        
+    #     os.makedirs(self.path, exist_ok=True)
+    #     psydat_path = os.path.join(self.path, f"{self.id}_main.psydat")
+    #     stairs.saveAsPickle(psydat_path, fileCollisionMethod='overwrite')
     
     def getThresholdFromBase(self, file_path):
         """
@@ -559,13 +883,19 @@ class Experiment:
                     return False
 
 
-    def blinkDiode(self,t=2/60):
-        # Defaults to two frames blink (at 60fps)
-        # Blinks the diode to indicate the offset of a stimulus
-        # Does not draw any new stimuli, flips the window with existing stuff
-        self.myWin.diode.color *= -1
-        self.myWin.win.flip()
-        core.wait(t) # 2 frames
+    # def blinkDiode(self,t=2/60):
+    #     # Defaults to two frames blink (at 60fps)
+    #     # Blinks the diode to indicate the offset of a stimulus
+    #     # Does not draw any new stimuli, flips the window with existing stuff
+    #     self.myWin.diode.color *= -1
+    #     self.myWin.win.flip()
+    #     core.wait(t) # 2 frames
+
+    def diodeOn(self):
+        self.myWin.diode.color = [-1, -1, -1]
+
+    def diodeOff(self):
+        self.myWin.diode.color = [1, 1, 1]
     
 
         

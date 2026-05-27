@@ -31,9 +31,11 @@ class Window:
     def drawOrder(self, stimuli):
         if not isinstance(stimuli, (list,tuple)):
             stimuli.draw()
+            self.diode.draw()
         elif isinstance(stimuli, (list,tuple)):
             for stimulus in stimuli:
                 stimulus.draw()
+                self.diode.draw()
         else:
             raise ValueError("Impossible instance of `stimuli` argument.")
         self.win.flip()

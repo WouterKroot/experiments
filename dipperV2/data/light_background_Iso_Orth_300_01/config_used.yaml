@@ -1,0 +1,359 @@
+exp_blocks:
+  baseline:
+    n_blocks: 1
+    n_trials: 20
+    test_trials: 10
+  main:
+    flanker_conditions:
+    - FC_factor: 0.5
+      label: '50'
+    - FC_factor: 1
+      label: '100'
+    - FC_factor: 1.5
+      label: '150'
+    - FC_factor: 3
+      label: '300'
+    - FC_factor: 1000
+      label: '1000'
+    n_blocks: 12
+    n_trials: 60
+    test_trials: 50
+fixed_params:
+  background_val: 0.9
+  n_down: 1
+  n_up: 1
+  nullOdds: 0.1
+  reversals: 19
+  start_val: -0.5
+  step_sizes:
+  - 0.2
+  - 0.189
+  - 0.179
+  - 0.168
+  - 0.158
+  - 0.147
+  - 0.137
+  - 0.126
+  - 0.116
+  - 0.105
+  - 0.095
+  - 0.084
+  - 0.074
+  - 0.063
+  - 0.053
+  - 0.042
+  - 0.032
+  - 0.021
+  - 0.01
+  step_type: lin
+  t_break: 5
+  t_fixation: 0.3
+  t_response: 1.35
+  t_stim: 0.3
+paths:
+  base_output_dir: ./data/
+  baseline_name: Baseline
+  exp_output_dir: light_background_Iso_Orth_300_01
+  main_name: Main
+  test_output_dir: Test
+stimuli:
+  six_flanker:
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - -27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - -27
+    type: flanker
+  six_flanker_orth:
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 0
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - -27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - -27
+    type: flanker
+  surround_flanker:
+  - angle: 135
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 27
+    type: flanker
+  - angle: 45
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 0
+    type: flanker
+  - angle: 225
+    length: 18
+    object: line
+    pos:
+    - -27
+    - -27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - -27
+    type: flanker
+  - angle: 315
+    length: 18
+    object: line
+    pos:
+    - 27
+    - -27
+    type: flanker
+  target:
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  triple_flanker:
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - -27
+    - -27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - -27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 27
+    - -27
+    type: flanker
+  triple_flanker_orth:
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - 0
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - 0
+    type: target
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - 0
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - -27
+    - -27
+    type: flanker
+  - angle: 90
+    length: 18
+    object: line
+    pos:
+    - 0
+    - -27
+    type: flanker
+  - angle: 0
+    length: 18
+    object: line
+    pos:
+    - 27
+    - -27
+    type: flanker
